@@ -28,6 +28,20 @@ NOTE :: The image hardening playbook was removed from aws_common_template.json. 
 },
 ```
 
+### vCenter
+
+If building vSphere images, need to edit the following variables in vsphere_packer_CIS_common_template.json and vsphere_packer_CIS_managed_worker_node_template.json files to match the vCenter system.
+
+```
+"type":
+"datacenter":
+"vcenter_server":
+"username":
+"password":
+"cluster":
+"datastore":
+```
+
 ## RHEL/Centos7 CIS Images
 
 Download the Ansible CIS hardening code from:

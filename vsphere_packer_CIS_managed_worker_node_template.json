@@ -18,13 +18,13 @@
         "src/vsphere_ubuntu_preseed.cfg"
       ],
       "insecure_connection": true,
-      "type": "vsphere-iso",
-      "datacenter": "SCP_Datacenter",
-      "vcenter_server": "192.168.146.70",
-      "username": "administrator@rnvcentre.local",
-      "password": "Password123456!",
-      "cluster": "SCP_Cluster",
-      "datastore": "vsanDatastore",
+      "type": ,
+      "datacenter": ,
+      "vcenter_server": ,
+      "username": ,
+      "password": ,
+      "cluster": ,
+      "datastore": ,
       "network_adapters": [
         {
           "network": "VM Network",
