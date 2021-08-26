@@ -1,0 +1,22 @@
+---
+- name: Install redis and dependencies
+  hosts: all
+  become: yes
+  vars:
+    ansible_ssh_user: "ubuntu"
+    ansible_interpreter: "/usr/bin/python3"
+  roles:
+    - role: davidwittman.redis
+      redis_version: 6.0.6
+    - role: redis_dependencies
+      tags: download
+    - role: keepalived
+      tags: download
+    - role: ssh_ad_packages
+      tags: download
+    - role: nfs
+      tags: download
+    - name: journald
+      tags: download
+    - name: logrhythm
+      tags: download

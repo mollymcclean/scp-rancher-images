@@ -1,0 +1,31 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+- name: install vim
+  # missing on rhel8
+  package:
+    name: vim
+    state: present
+
+- name: vimrc updates
+  vars:
+    RedHat_dest: /etc/vimrc
+    Amazon_dest: /etc/vimrc
+    CentOS_dest: /etc/vimrc
+    Ubuntu_dest: /etc/vim/vimrc
+  blockinfile:
+    marker: "\" {mark} ANSIBLE MANAGED BLOCK"
+    path: "{{ vars[ansible_distribution + '_dest'] }}"
+    block: |
+      "Secure changes
+      syntax on
+      colorscheme elflord
+      " no encryption
+      cmap X x
+      " no auto comment
+      autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
+      " my tabs for real scripters
+      set tabstop=4 softtabstop=4 shiftwidth=4 noexpandtab
+      " allow paste from PuTTY to work properly without auto-indenting lines
+      set paste
+      set modeline

@@ -1,0 +1,67 @@
+---
+#- name: Set mirror in hosts file
+#  lineinfile:
+#    path: /etc/hosts
+#    line: "{{ resources_address | default(192.168.146.253) }} mirror.ciscuk.lab.int mirror"
+#    state: present
+#
+#- name: Set mirror security in hosts file
+#  lineinfile: 
+#    path: /etc/hosts
+#    line: "{{ security_resources_address | default(192.168.146.253) }} mirror-security.ciscuk.lab.int mirror-security"
+#    state: present
+#  when: sources_indicator == "internal_ciscuk"
+#
+#- name: Clean sources.list
+#  file:
+#    state: absent
+#    path: /etc/apt/sources.list
+#
+#- name: Configure sources.list
+#  template:
+#    src: "{{ sources_indicator }}.sources.list.j2"
+#    dest: /etc/apt/sources.list
+#    owner: root
+#    group: root
+#    mode: 0644
+#
+#- name: Configure sources.list (hdp.list)
+#  template:
+#    src: "{{ sources_indicator }}.hdp.list.j2"
+#    dest: /etc/apt/sources.list.d/hdp.list
+#    owner: root
+#    group: root
+#    mode: 0644
+#  when: sources_indicator == "internal_ciscuk"
+#
+#- name: Configure sources.list (ambari.list)
+#  template:
+#    src: "{{ sources_indicator }}.ambari.list.j2"
+#    dest: /etc/apt/sources.list.d/ambari.list
+#    owner: root
+#    group: root
+#    mode: 0644
+#  when: sources_indicator == "internal_ciscuk"
+
+#- name: Add apt signing key for docker
+#  become: true
+#  apt_key:
+#    url: "{{ item }}"
+#    state: present
+#  with_items:
+#    - "https://ciscuk.lab.int/apt-key/docker.key"
+#  when: sources_indicator == "internal_ciscuk"
+
+- name: Upgrading apt before installing packages
+  become: true
+  apt:
+    upgrade: yes
+    update_cache: yes
+
+- name: Install aptitude
+  apt:
+    update_cache: yes
+    name: "{{ packages }}"
+  vars: 
+    packages:
+      - aptitude

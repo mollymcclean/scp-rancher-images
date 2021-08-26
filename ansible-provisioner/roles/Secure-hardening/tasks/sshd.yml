@@ -1,0 +1,129 @@
+---
+# vim: set ft=ansible
+
+- name: set perms on /etc/cron files
+  file:
+    path: "{{ item }}"
+    mode: '0600'
+    owner: 'root'
+    group: 'root'
+  loop:
+    - /etc/ssh/sshd_config
+    - /etc/ssh/ssh_config
+
+- name: set loglevel for sshd
+  lineinfile:
+    line: "LogLevel INFO"
+    regex: "^LogLevel "
+    state: present
+    path: /etc/ssh/sshd_config
+  notify: restart_sshd
+
+- name: X11 forwarding in sshd
+  lineinfile:
+    line: "X11Forwarding no"
+    regex: "(?i)^X11Forwarding yes"
+    state: present
+    path: /etc/ssh/sshd_config
+  notify: restart_sshd
+
+- name: Max Auth Tries in sshd
+  lineinfile:
+    line: "MaxAuthTries 4"
+    regex: "^MaxAuthTries "
+    state: present
+    path: /etc/ssh/sshd_config
+  notify: restart_sshd
+
+# https://docs.microsoft.com/en-us/azure/virtual-machines/linux/redhat-create-upload-vhd?toc=%2fazure%2fvirtual-machines%2flinux%2ftoc.json#prepare-a-rhel-7-virtual-machine-from-hyper-v-manager
+- name: ClientAliveInterval in sshd
+  lineinfile:
+    line: "ClientAliveInterval 300"
+    regex: "^ClientAliveInterval "
+    state: present
+    path: /etc/ssh/sshd_config
+  notify: restart_sshd
+
+- name: LoginGraceTime in sshd
+  lineinfile:
+    line: "LoginGraceTime 60"
+    regex: "^LoginGraceTime "
+    state: present
+    path: /etc/ssh/sshd_config
+  notify: restart_sshd
+
+# V-72225
+#Banner /etc/motd
+# set incorrectly by ansible-hardening
+- name: reset banner for sshd_config
+  lineinfile:
+    line: "Banner /etc/issue.net"
+    regex: "^Banner "
+    state: present
+    path: /etc/ssh/sshd_config
+  notify: restart_sshd
+
+- name: set perms on /etc/issue
+  file:
+    path: /etc/issue
+    mode: '0644'
+    owner: 'root'
+    group: 'root'
+
+- name: Copy /etc/issue to /etc/issue.net
+  copy:
+    src: /etc/issue
+    dest: /etc/issue.net
+    mode: '0644'
+    owner: 'root'
+    group: 'root'
+    remote_src: yes
+
+- name: "Use Only Approved sshd MACs"
+  lineinfile:
+    create: yes
+    dest: /etc/ssh/sshd_config
+    regexp: '^MACs .*'
+    line: "MACs {{ sshd_approved_macs }}"
+    validate: sshd -t -f %s
+  notify: restart_sshd
+
+- name: Use Only Approved Ciphers
+  lineinfile:
+    create: yes
+    dest: /etc/ssh/sshd_config
+    regexp: '^Ciphers .*'
+    line: "Ciphers {{ sshd_approved_ciphers }}"
+    validate: sshd -t -f %s
+  notify: restart_sshd
+
+
+- name: "Disable GSSAPI Authentication"
+  lineinfile:
+    create: yes
+    dest: /etc/ssh/sshd_config
+    regexp: (?i)^#?gssapiauthentication
+    line: GSSAPIAuthentication no
+    validate: sshd -t -f %s
+  notify: restart_sshd
+
+#- name: Display paths of all .txt files in dir
+#  debug: msg={{ lookup('fileglob', '/etc/ssh/*.pub') }}
+
+# FIXME: /etc/ssh/ssh_host_dsa_key.pub goes missing at runtime
+- name: Ensure permission 0644 on /etc/ssh/*.pub
+  file:
+    path: "{{ item }}"
+    mode: 0644
+  with_fileglob:
+    - "/etc/ssh/*.pub"
+  ignore_errors: yes
+
+# FIXME: /etc/ssh/ssh_host_dsa_key goes missing at runtime
+- name: Ensure permission 0600 on /etc/ssh/*_key
+  file:
+    path: "{{ item }}"
+    mode: 0600
+  with_fileglob:
+    - "/etc/ssh/*_key"
+  ignore_errors: yes

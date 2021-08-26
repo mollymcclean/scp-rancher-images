@@ -1,0 +1,19 @@
+---
+# vim: set ft=ansible
+- name: "Ensure YUM Removes Previous Package Versions"
+  lineinfile:
+      dest: /etc/yum.conf
+      regexp: ^#?clean_requirements_on_remove
+      line: clean_requirements_on_remove=1
+      insertafter: '\[main\]'
+
+
+- name: Stop and disable rhnsd
+  service:
+    name: rhnsd
+    state: stopped
+    enabled: no
+  ignore_errors: yes  # ignore if it doesnt exist - as it breaks when enabled: is used
+  when: ansible_distribution == 'RedHat'
+
+  

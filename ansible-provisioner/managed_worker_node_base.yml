@@ -1,0 +1,6 @@
+- name: Base images tasks
+  hosts: all
+  become: yes
+  
+  roles:
+    - longhorn

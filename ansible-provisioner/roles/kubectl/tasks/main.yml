@@ -1,0 +1,18 @@
+---
+- name: Download kubectl
+  get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
+    dest: "/home/{{ ansible_ssh_user }}"
+
+- name: Copy kubectl into the bin
+  become: true
+  copy:
+    src: "/home/{{ ansible_ssh_user }}/kubectl"
+    dest: /usr/local/bin
+    remote_src: yes
+
+- name: Making kubectl executable
+  become: true
+  file:
+    dest: /usr/local/bin/kubectl
+    mode: a+x

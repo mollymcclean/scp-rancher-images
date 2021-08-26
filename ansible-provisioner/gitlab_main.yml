@@ -1,0 +1,13 @@
+- name: Install Gitlab and dependencies
+  hosts: localhost
+  become: true
+  vars:
+    ansible_ssh_user: "ubuntu"
+    ansible_interpreter: "/usr/bin/python3"
+  roles:
+    - name: gitlab
+    - name: ssh_ad_packages
+    - name: python_gitlab_module
+    - name: nfs
+    - name: journald
+    - name: logrhythm

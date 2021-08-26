@@ -1,0 +1,68 @@
+{
+    "builders": [
+      {
+        "type": "amazon-ebs",
+        "region": "eu-west-1",
+        "source_ami": "ami-0a8e758f5e873d1c1",
+        "instance_type": "t2.small",
+        "ssh_username": "ubuntu",
+        "ami_name": "{{user `ova_file_name`}}-{{timestamp}}",
+        "launch_block_device_mappings": [
+          {
+            "device_name": "/dev/sda1",
+            "volume_size": "{{user `volume_size`}}",
+            "volume_type": "gp2",
+            "delete_on_termination": true
+          }
+        ]
+      }
+    ],
+    "provisioners": [
+      {
+        "inline": [
+          "pwd;ls -l"
+        ],
+        "type": "shell"
+      },
+      {
+        "playbook_file": "ansible-provisioner/base.yml",
+        "extra_arguments": ["-u", "ubuntu", "-e", "ansible_python_interpreter=/usr/bin/python3", "-v"],
+        "type": "ansible"
+      },
+      {
+        "inline": [
+          "sudo apt update && sudo apt install ansible -y"
+        ],
+        "type": "shell"
+      },
+      {
+        "expect_disconnect": "true",
+        "inline": [
+          "sudo reboot"
+        ],
+        "inline_shebang": "/bin/bash -e",
+        "type": "shell"
+      },
+      {
+        "pause_before": "30s",
+        "playbook_dir": "ansible-provisioner",
+        "playbook_file": "ansible-provisioner/{{user `playbook_file`}}",
+        "role_paths": [
+          "ansible-provisioner/roles"
+        ],
+        "type": "ansible-local"
+      },
+      {
+        "expect_disconnect": "true",
+        "inline": [
+          "sudo reboot"
+        ],
+        "inline_shebang": "/bin/bash -e",
+        "type": "shell"
+      },
+      {
+        "script": "scripts/ubuntu_cleanup.sh",
+        "type": "shell"
+      }
+    ]
+}

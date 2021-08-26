@@ -1,0 +1,19 @@
+---
+- name: Download helm
+  unarchive:
+    src: "{{ helm_source }}"
+    dest: "{{ helm_tmp_destination }}"
+    remote_src: "{{ helm_remote_source }}"
+
+- name: Copy helm into the bin
+  become: true
+  copy:
+    src: "{{ helm_tmp_destination }}/linux-amd64/helm"
+    dest: /usr/local/bin/helm
+    remote_src: yes
+
+- name: Making Helm executable
+  become: true
+  file:
+    dest: /usr/local/bin/helm
+    mode: a+x

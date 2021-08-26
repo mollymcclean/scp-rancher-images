@@ -1,0 +1,30 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+- set_fact:
+    glob_profile_scripts: "{{ lookup('fileglob', '/etc/profile.d/*.sh').split(',') }}"
+    static_profile_scripts:
+      - /etc/bash.bashrc 
+      - /etc/bashrc 
+      - /etc/profile
+- set_fact: 
+    profile_scripts: "{{ glob_profile_scripts + static_profile_scripts }}"
+
+
+- name: Ensure umasks are set to 027 in profile scripts
+  replace:
+    path: "{{ item }}"
+    regexp: 'umask\s+\d+'
+    replace: "umask 027"
+  loop: "{{ profile_scripts }}"
+  loop_control:
+    label: "{{ item }}"
+  ignore_errors: yes # in case file do not exist
+
+# login.defs
+- name: Ensure UMASK 027 is in login.defs
+  lineinfile:
+    create: yes
+    dest: "/etc/login.defs"
+    regexp: '^UMASK\s+\d+'
+    line: "UMASK 027" 

@@ -1,0 +1,23 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+- name: /etc/profile updates
+  lineinfile:
+    path: /etc/profile
+    regexp: "{{ item.r }}"
+    line: "{{ item.l }}"
+  loop:
+    # horribly esaceped line to get it past ansible and bash alias
+    - { 'r': '^alias su=', 'l': "alias su='echo \"Always use '\\''/bin/su -'\\'' \"; echo >/dev/null'" }
+    - { 'r': '^export LS_COLORS=', 'l': "export LS_COLORS='di=0;35'"}
+    - { 'r': 'alias vi=', 'l': 'alias vi="/usr/bin/vim "'}
+    - { 'r': 'export EDITOR=', 'l': 'export EDITOR=/usr/bin/vim'}
+    - { 'r': 'export HISTTIMEFORMAT=', 'l': 'export HISTTIMEFORMAT="%h %d %H:%M:%S "'}
+    - { 'r': 'export TZ=', 'l': "export TZ='Europe/London'"}
+    #- { 'r': '', 'l': ''}
+  loop_control:
+    label: "{{ item.r }}"
+
+
+
+

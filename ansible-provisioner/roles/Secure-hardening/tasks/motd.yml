@@ -1,0 +1,50 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+# https://raymii.org/s/tutorials/Ansible_-_Only_if_on_specific_distribution_or_distribution_version.html
+# - debug:
+#     msg: 
+#       - "{{ ansible_distribution }}"
+#       - "{{ ansible_distribution_release }}"
+#       - "{{ ansible_distribution_version }}"
+      
+- block:
+    - name: Create new motd Debian
+      template:
+        src: motd-30-banner.j2
+        dest: /etc/update-motd.d/30-banner
+        owner: root
+        group: root
+        mode: 0755
+        backup: yes
+
+    - name: Disable some motd exe files
+      file:
+        path: "/etc/update-motd.d/{{ item }}"
+        mode: '0644'
+      ignore_errors: yes
+      loop:
+        - 00-header
+        - 10-help-text
+        - 50-landscape-sysinfo
+        - 50-motd-news
+        - 50-amazon-linux-extras-news
+        - 80-esm
+        - 80-livepatch
+      loop_control:
+        label: "{{ item.r }}"
+      no_log: true
+
+
+  when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian' # TODO: add more checks here when needed
+
+- name: Create new motd RedHat
+  template:
+    src: motd-banner.j2
+    dest: /etc/motd
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  when: ansible_distribution == 'RedHat' or ansible_distribution == 'Amazon' or ansible_distribution == 'CentOS'
+  # TODO: add more checks here when needed

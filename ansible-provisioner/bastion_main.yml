@@ -1,0 +1,17 @@
+- name: Install Bastion Applications
+  hosts: localhost
+  become: true
+  vars:
+    ansible_ssh_user: "ubuntu"
+    ansible_interpreter: "/usr/bin/python3"
+  roles:
+    - bastion
+    - kubectl
+    - docker
+    - docker_images
+    - helm
+    - ssh_ad_packages
+    - nfs
+    - journald
+    - logrhythm
+    - vmware_ansible_packages

@@ -1,0 +1,14 @@
+- name: Install dependencies for Rancher
+  hosts: localhost
+  become: true
+  vars:
+    ansible_ssh_user: "ubuntu"
+    ansible_interpreter: "/usr/bin/python3"
+  roles:
+    - k8s_nodes
+    - rancher_k8s_node_hardening
+    - docker
+    - ssh_ad_packages
+    - journald
+    - nfs
+    - keepalived

@@ -1,0 +1,46 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+# https://www.server-world.info/en/note?os=Ubuntu_18.04&p=pam_tally
+
+
+# auth    required        pam_tally2.so deny=5 unlock_time=60
+# # here are the per-package modules (the "Primary" block)
+# auth    [success=1 default=ignore]      pam_unix.so nullok_secure
+
+- name: set auth required pam_tally2 before pam_unix.so
+  pamd:
+    # /etc/pam.d/common-auth
+    name: common-auth
+    # auth    [success=1 default=ignore]      pam_unix.so
+    type: auth
+    control: "[success=1 default=ignore]"
+    module_path: pam_unix.so
+    # auth    required        pam_tally2.so silent even_deny_root deny=X unlock_time=Y
+    new_type: auth
+    new_control: required
+    new_module_path: pam_tally2.so
+    module_arguments: 
+        - silent
+        - even_deny_root
+        - deny={{ var_accounts_passwords_pam_faillock_deny }}
+        - unlock_time={{ var_accounts_passwords_pam_faillock_unlock_time }}
+    state: before
+
+# account required                        pam_tally2.so
+# # here are the per-package modules (the "Primary" block)
+# account [success=1 new_authtok_reqd=done default=ignore]        pam_unix.so
+
+- name: set account required pam_tally2 before pam_unix.so
+  pamd:
+    # /etc/pam.d/common-account
+    name: common-account
+    # account [success=1 new_authtok_reqd=done default=ignore]        pam_unix.so
+    type: account
+    control: "[success=1 new_authtok_reqd=done default=ignore]"
+    module_path: pam_unix.so
+    # auth    required        pam_tally2.so silent even_deny_root deny=X unlock_time=Y
+    new_type: account
+    new_control: required
+    new_module_path: pam_tally2.so
+    state: before

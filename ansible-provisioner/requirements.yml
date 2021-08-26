@@ -1,0 +1,7 @@
+---
+- src: https://github.com/florianutz/ubuntu2004_cis.git
+- src: https://github.com/MindPointGroup/RHEL7-CIS.git
+- src: dev-sec.os-hardening
+- src: dev-sec.ssh-hardening
+- src: davidwittman.redis
+  version: 1.2.8

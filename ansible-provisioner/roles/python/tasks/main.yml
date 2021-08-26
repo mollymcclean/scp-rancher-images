@@ -1,0 +1,39 @@
+---
+- name: Installing packages
+  apt:
+    update_cache: yes
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - python3.8
+      - python3.8-dev
+      - python3-apt
+      - python3-pip
+      - build-essential
+      - libssl-dev
+      - libffi-dev
+      - libpq-dev
+      - libgdal-dev
+      - gdal-bin
+
+- name: Upgrade pip
+  become: true
+  pip:
+    name: pip
+    state: latest
+
+#- name: Copying pip.conf
+#  template:
+#    src: "{{ sources_indicator }}.pip.conf"
+#    dest: /etc/pip.conf
+#    owner: root
+#    group: root
+#    mode: 0755
+
+- name: Set python3.6 as the default version
+  become: yes
+  command: update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
+
+- name: Set pip3 as the default version
+  become: yes
+  command: update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1

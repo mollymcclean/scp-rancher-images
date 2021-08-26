@@ -1,0 +1,25 @@
+---
+- name: Install dependencies for bastion (vmware)
+  hosts: localhost
+  become: true
+  vars:
+    ansible_ssh_user: "ubuntu"
+    ansible_interpreter: "/usr/bin/python3"
+  roles:
+    - name: bastion
+    - name: kubectl
+    - name: docker
+    - name: docker_images
+    - name: helm
+    - name: ssh_ad_packages
+    - name: nfs
+    - name: journald
+    - name: logrhythm
+
+- name: Install VMWare Ansible Packages
+  hosts: localhost
+  vars:
+    ansible_ssh_user: "ubuntu"
+    ansible_interpreter: "/usr/bin/python3"
+  roles:
+    - vmware_ansible_packages

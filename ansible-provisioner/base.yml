@@ -1,0 +1,13 @@
+- name: Base images tasks
+  hosts: all
+  vars:
+    sources_indicator: internal_ciscuk
+    resources_address: ciscuk.lab.int
+    security_resources_address: ciscuk-security.lab.int
+  become: yes
+
+  roles:
+    #- pam # Enable this to prevent console logons (I think)
+    #- ca_certs
+    - apt_sources
+    - python

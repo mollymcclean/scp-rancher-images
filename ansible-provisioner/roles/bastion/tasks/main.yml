@@ -1,0 +1,65 @@
+---
+# These steps install the rke application required to be able to create the RKE cluster
+
+- name: Download RKE
+  become: true
+  get_url:
+    url: "https://github.com/rancher/rke/releases/download/{{ rke_version }}/rke_linux-amd64"
+    dest: /usr/bin/rke
+
+- name: Making RKE executable
+  become: true
+  file:
+    dest: /usr/bin/rke
+    mode: a+x
+
+# Packages for troubleshooting
+- name: Install ldap tools
+  become: true
+  package:
+    name:
+      - openldap-servers
+      - openldap-clients
+      - openldap-devel
+      - sssd-ldap
+      - sssd-tools
+      - sssd-client
+      - sssd-ad
+      - sssd-krb5
+      - samba-common
+      - samba-common-tools
+      - krb5-workstation
+      - policycoreutils-python
+    state: latest
+  when: ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+# Packages for troubleshooting
+- name: Install ldap tools
+  become: true
+  package:
+    name:
+      - slapd
+      - ldap-utils
+      - sssd-ldap
+      - sssd-tools
+      - sssd-ad
+      - sssd-krb5
+      - samba-common
+      - samba-dev
+      - krb5-user
+      - policycoreutils-python-utils
+      - sshpass
+    state: latest
+  when: ansible_facts.distribution in ['Ubuntu']
+
+- name: Install json processor
+  become: true
+  package:
+    name: jq
+    state: latest
+
+- name: Install curl package for general trouble shooting
+  become: true
+  package:
+    name: curl
+    state: latest

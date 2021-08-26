@@ -1,0 +1,73 @@
+---
+# vim: set ft=ansible
+
+#
+# faillock is the new pam_tally2 on RedHat7
+#
+
+#https://www.tecmint.com/lock-user-accounts-after-failed-login-attempts-in-linux/
+
+- name: set auth pam_faillock before pam_unix.so
+  pamd:
+    name: system-auth
+    type: auth
+    control: sufficient
+    module_path: pam_unix.so
+    
+    new_type: auth
+    new_control: required
+    new_module_path: pam_faillock.so
+    module_arguments: 'preauth
+        silent
+        even_deny_root
+        deny={{ var_accounts_passwords_pam_faillock_deny }}
+        unlock_time={{ var_accounts_passwords_pam_faillock_unlock_time }}
+        fail_interval={{ var_accounts_passwords_pam_faillock_fail_interval }}'
+    state: before
+
+- name: set auth pam_faillock after pam_unix.so
+  pamd:
+    name: system-auth
+    type: auth
+    control: sufficient
+    module_path: pam_unix.so
+
+    new_type: auth
+    new_control: '[default=die]'
+    new_module_path: pam_faillock.so
+    module_arguments: 'preauth
+        silent
+        even_deny_root
+        deny={{ var_accounts_passwords_pam_faillock_deny }}
+        unlock_time={{ var_accounts_passwords_pam_faillock_unlock_time }}
+        fail_interval={{ var_accounts_passwords_pam_faillock_fail_interval }}'
+    state: after
+
+- name: set account pam_faillock before pam_unix.so
+  pamd:
+    name: system-auth
+    type: account
+    control: required
+    module_path: pam_unix.so
+
+    new_type: account
+    new_control: required
+    new_module_path: pam_faillock.so
+    state: before
+
+- name: "Do not allow users to reuse recent passwords - system-auth (change)"
+  replace:
+    path: /etc/pam.d/system-auth
+    regexp: '^(password\s+sufficient\s+pam_unix\.so\s.*remember\s*=\s*)(\S+)(.*)$'
+    replace: '\g<1>{{ var_password_pam_unix_remember }}\g<3>'
+
+
+- name: "Do not allow users to reuse recent passwords - system-auth (add)"
+  replace:
+    path: /etc/pam.d/system-auth
+    regexp: '^password\s+sufficient\s+pam_unix\.so\s(?!.*remember\s*=\s*).*$'
+    replace: '\g<0> remember={{ var_password_pam_unix_remember }}'
+
+
+
+

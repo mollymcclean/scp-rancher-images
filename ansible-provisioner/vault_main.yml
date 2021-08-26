@@ -1,0 +1,14 @@
+---
+- name: Install Hashicorp Vault & Consul
+  hosts: localhost
+  become: true
+  vars:
+    ansible_ssh_user: ubuntu
+    ansible_interpreter: "/usr/bin/python3"
+  roles:
+    - name: ssh_ad_packages
+    - name: nfs
+    - name: journald
+    - name: logrhythm
+    - name: vault_with_consul
+    - name: keepalived

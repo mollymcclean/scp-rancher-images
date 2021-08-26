@@ -1,0 +1,28 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+- name: Check that the postfix conf exists
+  stat:
+    path: /etc/postfix/main.cf
+  register: stat_result
+
+- block:
+
+  - name: Set inet_protocols to ipv4
+    lineinfile:
+      path: /etc/postfix/main.cf
+      regexp: '^inet_protocols\s*=\s*.*'
+      line: 'inet_protocols = ipv4'
+    notify: restart_postfix
+
+  - name: Set inet_interfaces to local only
+    lineinfile:
+      path: /etc/postfix/main.cf
+      regexp: '^inet_interfaces\s*=\s*.*'
+      line: 'inet_interfaces = 127.0.0.1'
+      validate: /usr/sbin/postfix check %s
+    notify: restart_postfix
+
+
+  # only run if file exists
+  when: stat_result.stat.exists == True 

@@ -1,0 +1,5 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+cloud_provider: "AWS" # Amazon
+Azure_BYOS: false

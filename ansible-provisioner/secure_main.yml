@@ -1,0 +1,34 @@
+- name: Configure instance
+  hosts: localhost
+  become: true
+  vars:
+    linux_sysprep_user_ssh_dirs: yes
+    linux_sysprep_ssh_hostkeys: yes
+    sysprep_production: yes
+  roles:
+    - name: Secure-config
+      vars:
+        cloud_provider: "AWS"
+      tags: secure_config
+
+    - name: ansible-hardening
+      vars:
+        security_ntp_server_options: iburst maxpoll 10
+        security_enable_firewalld: no
+        security_rhel7_initialize_aide: no
+        security_sshd_banner_file: /etc/issue
+        security_sshd_disallow_gssapi: no
+        #security_package_state: present
+        security_rhel7_enable_linux_security_module: no
+        security_rhel7_enable_chrony: no
+        security_enable_virus_scanner: no
+        security_sshd_enable_x11_forwarding: no
+        security_contrib_enabled: yes
+        security_contrib_disable_ipv6: yes
+      tags: default_hardening
+
+    - name: Secure-hardening
+      tags: secure_hardening
+
+    - name: linux_sysprep
+      tags: linux_sysprep

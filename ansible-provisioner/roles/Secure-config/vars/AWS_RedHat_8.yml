@@ -1,0 +1,96 @@
+Secure_packages:
+# selinux
+#@server-policy # not available rhel7
+#
+# standard packages
+#
+# Access
+  - openssh-server
+# required for user accounts
+  - dbus
+# Security
+  - audit
+  - yum
+  #- ntp - rhel8 replaced by chrony
+  - chrony
+#pam_passwdqc # not available rhel7
+  - sudo
+  - wget
+  - openssh-clients
+  #- tcp_wrappers - no replacement on rhel8 https://access.redhat.com/solutions/3906701
+  - iptables-services
+# SCAP Security
+  - openscap
+  - openscap-utils
+  - scap-security-guide
+# Diagnostics
+  - bind-utils
+  - sysstat
+  - psacct
+  - strace
+  - which
+  - man
+  - man-pages
+  - mailx
+  - perl
+  - tcpdump
+  - lsof
+# as of v6.7-1.0
+  - lshw
+  - sg3_utils
+  - lsscsi
+  - pciutils
+  - eject
+# end 6.7-1.0
+#
+# Tools
+  - zip
+  - unzip
+  - vim
+  - ed
+  - parted
+  - rsync
+#w3m # not available rhel7
+  - biosdevname
+  - ksh
+  - curl
+  #- yum-changelog  - no replacement on rhel8 - use dnf changelog <package>
+#yum-downloadonly # not available rhel7
+  - yum-utils
+  - createrepo
+
+# others
+# lsb-release used by many vendor install scripts
+  - redhat-lsb-core
+
+  # - x86info - no replacement on rhel8
+  - tuned
+
+#7.2-1.0
+  - tree
+  - tmpwatch
+  # not in RHEL8
+  #- screen
+  - tmux
+
+# from RedHat opt repo
+# uudecode etc.
+  #- sharutils
+
+# OPTMIS-8 - better support for our EMEIA collegues
+  # - system-config-keyboard - no replacement on rhel8
+  # - system-config-language - no replacement on rhel8
+  # - yum-langpacks - no replacement on rhel8
+
+# OPTMIS-10
+  - perf
+# OPTMIS-31
+  - dstat
+
+# OPTMIS-93
+  # - yum-plugin-verify  - no replacement on rhel8
+
+
+#packages available only to codeready-builder-for-rhel-8-x86_64-rpms 
+Secure_packages_code_ready_builder:
+- sharutils

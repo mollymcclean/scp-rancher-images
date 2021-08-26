@@ -1,0 +1,95 @@
+Secure_packages:
+# selinux
+#@server-policy # not available rhel7
+#
+# standard packages
+#
+# Access
+  - openssh-server
+# required for user accounts
+  - dbus
+# Security
+  - audit
+  - yum
+  #- ntp
+  - chrony
+#pam_passwdqc # not available rhel7
+  - sudo
+  - wget
+  - openssh-clients
+  - tcp_wrappers
+  ####- iptables-services # not available on Azure image
+# SCAP Security
+  - openscap # not available on Azure image
+  - openscap-utils # not available on Azure image
+  - scap-security-guide # not available on Azure image
+# Diagnostics
+  - bind-utils
+  - sysstat
+  - psacct
+  - strace
+  - which
+  - man
+  - man-pages
+  - mailx
+  - perl
+  - tcpdump
+  - lsof
+# as of v6.7-1.0
+  - lshw
+  - sg3_utils
+  - lsscsi
+  - pciutils
+  - eject
+# end 6.7-1.0
+#
+# Tools
+  - zip
+  - unzip
+  - vim
+  - ed
+  - parted
+  - rsync
+#w3m # not available rhel7
+  - biosdevname
+  - ksh # not available on Azure image
+  - curl
+  - yum-changelog # not available on Azure image
+#yum-downloadonly # not available rhel7
+  - yum-utils
+  - createrepo # not available on Azure image
+
+# others
+# lsb-release used by many vendor install scripts
+  - redhat-lsb-core # not available on Azure image
+
+  - x86info # not available on Azure image
+  - tuned
+
+#7.2-1.0
+  - tree # not available on Azure image
+  - tmpwatch # not available on Azure image
+  - screen # not available on Azure image
+  - tmux # not available on Azure image
+
+# from RedHat opt repo
+# uudecode etc.
+  #- sharutils
+
+# OPTMIS-8 - better support for our EMEIA collegues
+  - system-config-keyboard # not available on Azure image
+  - system-config-language # not available on Azure image
+  - yum-langpacks
+
+# OPTMIS-10
+  - perf # not available on Azure image
+# OPTMIS-31
+  - dstat # not available on Azure image
+
+# OPTMIS-93
+  - yum-plugin-verify # not available on Azure image
+
+
+#packages available only to rhui-REGION-rhel-server-optional
+Secure_packages_optional:  # not available on Azure image
+  - sharutils

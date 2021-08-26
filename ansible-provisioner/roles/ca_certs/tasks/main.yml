@@ -1,0 +1,21 @@
+---
+- name: Setup CA Certificate (create directory)
+  file: 
+    path: "/usr/share/ca-certificates/ciscuk"
+    state: directory
+
+- name: Copy CISCUK cert into shared certs
+  copy:
+    src: caCert.pem
+    dest: "/usr/share/ca-certificates/ciscuk/caCert.pem"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Setup CA Certificate (add to list)
+  lineinfile:
+    path: /etc/ca-certificates.conf
+    line: "ciscuk/caCert.pem"
+
+- name: Setup CA Certificate (update list)
+  shell: /usr/sbin/update-ca-certificates

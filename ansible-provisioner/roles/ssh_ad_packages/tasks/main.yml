@@ -1,0 +1,54 @@
+# Packages required for ssh integration with AD
+
+- name: Install dependencies for ssh ad integration
+  package:
+    name:
+      - realmd
+      - sssd
+      - oddjob
+      - oddjob-mkhomedir
+      - adcli
+      - python3-pip
+    state: latest
+  when: ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+- name: Install Ubuntu dependencies for ssh ad integration
+  package:
+    name:
+      - realmd
+      - sssd
+      - oddjob
+      - oddjob-mkhomedir
+      - adcli
+      - python3-pip
+      - policykit-1
+      - sssd-tools
+      - packagekit-tools
+    state: latest
+  when: ansible_facts.distribution in ['Ubuntu']
+
+- name: install samba for ssh for non-Ubuntu
+  package:
+    name:
+      - samba-common
+      - samba-common-tools
+  when: ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+- name: install samba for ssh for Ubuntu
+  package:
+    name:
+      - samba-common
+      - samba-dev
+  when: ansible_facts.distribution in ['Ubuntu']
+
+- name: install dependencies for ssh ad integration
+  pip:
+    name:
+      - dnspython
+      #- pexpect
+    state: latest
+    executable: pip3
+  register: ssh_ad_pip_dependencies
+  #failed_when:
+  #  - ssh_ad_pip_dependencies.rc != 0
+  #  - "'Requirement already satisfied' not in ssh_ad_pip_dependencies.stderr"

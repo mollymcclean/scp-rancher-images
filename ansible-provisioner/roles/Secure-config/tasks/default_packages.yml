@@ -1,0 +1,143 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+# include our os dependancies 
+- include_vars: "{{ cloud_provider }}_{{ os_ver }}.yml"
+
+# Azure BYOS has no default repos - so attach a subscription
+- block:
+
+  - name: include platform specific vars
+    include_vars:
+      file: "RHN.yml"
+
+  - debug:
+      msg:
+        - "{{ rhn_user }}"
+        #- "{{ rhn_password }}"
+        - "{{ rhn_pool_id }}"
+
+  - name: Temporarily add repo from RHN
+    redhat_subscription:
+      state: present
+      username: "{{ rhn_user }}"
+      password: "{{ rhn_password }}"
+      pool_ids: "{{ rhn_pool_id }}"
+    register: rhn_subs
+
+  - debug: var=rhn_subs
+
+  - name: Update cache
+    command: yum -v makecache
+    register: yum_makecache
+    ignore_errors: yes
+
+  - debug: var=yum_makecache.stdout_lines
+
+  - name: get dnl debug info
+    shell: grep check_transfer_statuses /var/log/dnf.librepo.log
+    ignore_errors: yes
+    register: dnllog
+
+  - debug: var=dnllog.stdout_lines
+
+  when: 
+    - (cloud_provider + '_' + os_ver == 'AZ_RedHat_7') or (cloud_provider + '_' + os_ver == 'AZ_RedHat_8')
+    - Azure_BYOS
+
+# if we get yum lockfile issues this will need ot be split out per OS variant
+# - name: Install Default Packages
+#   package:
+#     name: "{{ Secure_packages }}"
+#     state: present
+#   register: pkgs
+
+# needs to be package manager dependant to update the repo cache
+- name: install default packages for RedHat based systems
+  yum: 
+    name: "{{ Secure_packages }}"
+    state: latest 
+    update_cache: yes
+  when: ansible_distribution == "CentOS" or
+    ansible_distribution == "Amazon" or
+    ansible_distribution == "RedHat"
+
+- name: install default packages for Debian based systems
+  apt: 
+    name: "{{ Secure_packages }}"
+    state: latest 
+    update_cache: yes
+  when: ansible_distribution == "Ubuntu" or
+    ansible_distribution == "Debian"
+
+
+- name: Print package installation results
+  debug:
+    msg: 
+      - "{{ pkgs.results | default('none installed') }}"
+
+#
+# search for optional / extra / code ready packages here
+#  https://access.redhat.com/downloads/content/package-browser
+#
+
+##
+## RHEL 7 Optional
+##
+- block:
+
+  - set_fact: # FIXME: These should just be vars looked up
+      optional_repo: "rhel-7-server-optional-rpms"
+    when: cloud_provider == 'AZ'
+
+  - set_fact:
+      optional_repo: "rhui-REGION-rhel-server-optional"
+    when: cloud_provider == 'AWS'
+  
+  - name: install RedHat 7 Optional packages
+    yum:
+      name: "{{ Secure_packages_optional }}"
+      enablerepo: 
+        - "{{ optional_repo }}"
+      state: present
+      lock_timeout: 180
+    register: pkgs
+    ignore_errors: yes  # Gold Builds have no
+
+  - name: Print optional package installation results
+    debug:
+      msg: 
+        - "{{ pkgs.results | default('none installed') }}"
+
+  when: os_ver == "RedHat_7" 
+
+
+##
+## RHEL 8 optional
+##
+- block:
+
+  - set_fact:
+      optional_repo: "rhel-8-server-optional-rpms"
+    when: cloud_provider == 'AZ'
+
+  - set_fact:
+      optional_repo: "rhui-codeready-builder-for-rhel-8-rhui-rpms"
+    when: cloud_provider == 'AWS'
+
+  - name: install RedHat 8 Code Ready Builder packages
+    yum:
+      name: "{{ Secure_packages_code_ready_builder }}"
+      enablerepo: 
+        - "{{ optional_repo }}"
+      state: present
+      lock_timeout: 180
+    register: pkgs
+    ignore_errors: yes
+
+  - name: Print optional package installation results
+    debug:
+      msg: 
+        - "{{ pkgs.results | default('none installed') }}"
+
+  when: os_ver == "RedHat_8" 

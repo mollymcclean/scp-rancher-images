@@ -1,0 +1,56 @@
+---
+- name: Install dependencies for Longhorn
+  package:
+    name:
+      - lvm2
+      - xfsprogs
+      - curl
+      - mount
+      - grep
+      - mawk
+      - util-linux
+      - open-iscsi
+    state: latest
+  when: ansible_facts.distribution in [ 'Ubuntu' ]
+
+- name: Start iscsid service
+  service:
+    name: iscsid.service
+    state: started
+
+- name: Create partition
+  parted:
+    device: /dev/sdb
+    number: 1
+    state: present
+
+- name: Create a volume group using /dev/sdb the maximum size of the disk
+  lvg:
+    vg: longhorn-vg
+    pvs: /dev/sdb1
+    pvresize: yes
+
+- name: Create a logical the maximum size of the volume group
+  lvol:
+    vg: longhorn-vg
+    lv: persistent-volumes
+    size: 100%PVS
+    force: yes
+
+- name: Create the mount for the Longhorn volume
+  file:
+    path: /var/lib/longhorn
+    state: directory
+    mode: '0755'
+
+- name: Create an xfs file system on Longhorn logical volume
+  filesystem:
+    fstype: xfs
+    dev: /dev/longhorn-vg/persistent-volumes
+
+- name: Mount Longhorn volume on /var/lib/longhorn
+  mount:
+    path: /var/lib/longhorn
+    src: /dev/longhorn-vg/persistent-volumes
+    fstype: xfs
+    state: mounted

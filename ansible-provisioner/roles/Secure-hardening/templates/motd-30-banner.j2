@@ -1,0 +1,20 @@
+#!/bin/sh
+
+##
+## replacement motd to keep the pentesters happy and advertise the build
+##
+cat<<MOTD
+{% include './templates/motd-banner.j2' %}
+ 
+MOTD
+
+#
+# not done AIS yet?
+#
+cat<<EOF
+This server has not been accepted into support.
+(update this motd text when AIS is completed - in /etc/update-motd.d/30-banner).
+EOF
+##End AIS
+
+# END

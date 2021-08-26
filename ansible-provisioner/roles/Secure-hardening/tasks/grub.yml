@@ -1,0 +1,88 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+# ubuntu
+#"/etc/default/grub"
+#GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+# update-grub
+
+# redhat
+#"/etc/default/grub"
+#GRUB_CMDLINE_LINUX="console=tty1 console=ttyS0 earlyprintk=ttyS0 rootdelay=300"
+# update-grub
+
+- set_fact:
+    # https://docs.microsoft.com/en-us/azure/virtual-machines/linux/redhat-create-upload-vhd?toc=%2fazure%2fvirtual-machines%2flinux%2ftoc.json#prepare-a-rhel-7-virtual-machine-from-hyper-v-manager
+    grub_cmd_line: "audit=1 console=tty1 console=ttyS0 earlyprintk=ttyS0 rootdelay=300 crashkernel=auto"
+
+  # RHEL 8 has new method of updating kernel opts
+  # https://access.redhat.com/solutions/3710121
+
+- block:
+  - name: Set audit=1 in grub cmd line (RedHat)
+    lineinfile:
+      path: /etc/default/grub
+      regexp: '^GRUB_CMDLINE_LINUX\s*=\s*.*'
+      line: 'GRUB_CMDLINE_LINUX="{{ grub_cmd_line }}"'
+    register: grub_rh
+
+  - name: Update Grub2 config file redhat 7 / Amazon 2
+    shell: grub2-mkconfig -o /boot/grub2/grub.cfg
+    when: grub_rh.changed == True
+
+  # RHEL-7 and earlier
+  # Amazon Linux 2 (which is based on RHEL-7)
+  when: ( ansible_distribution == 'RedHat' and ansible_distribution_major_version|int <8 ) 
+        or ( ansible_distribution == 'CentOS' and ansible_distribution_major_version|int <8 ) 
+        or ansible_distribution == 'Amazon'
+
+- block:
+  - name: Get kernelopts from grub2-editenv
+    shell: grub2-editenv - list | grep kernelopts
+    register: kernelopts
+
+  - debug: var=kernelopts.stdout_lines[0]
+
+  - name: Update Grub2 config file with grub2-editenv redhat 8
+    shell: "grub2-editenv - set \"{{ kernelopts.stdout_lines[0] }} {{ grub_cmd_line }}\""
+    when: grub_cmd_line not in kernelopts.stdout_lines[0]
+
+  # RHEL-8
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 8
+
+
+- block:
+  - name: Set audit=1 in grub cmd line (Ubuntu)
+    lineinfile:
+      path: "{{ item }}"
+      regexp: '^GRUB_CMDLINE_LINUX_DEFAULT\s*=\s*.*'
+      line: 'GRUB_CMDLINE_LINUX_DEFAULT="{{ grub_cmd_line }}"'
+    loop:
+      # 50-cloudimg-settings overwrites first line
+      - /etc/default/grub 
+      - /etc/default/grub.d/50-cloudimg-settings.cfg
+    register: grub_ub
+    ignore_errors: yes # CarlP
+
+  - name: Update Grub2 config file ubuntu
+    shell: /usr/sbin/update-grub
+    when: grub_ub.changed == True
+
+  when: ansible_distribution == 'Ubuntu'
+
+
+
+
+#
+# do this last otherwise the above command change the file perms again
+#
+- name: set grub.cfg file permissions
+  file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: '600'
+  ignore_errors: yes
+  loop:
+    - '/boot/grub2/grub.cfg' # redhat
+    - '/boot/grub/grub.cfg' # ubuntu

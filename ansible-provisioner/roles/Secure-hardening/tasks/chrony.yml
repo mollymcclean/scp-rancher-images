@@ -1,0 +1,9 @@
+---
+# vim: set ft=ansible
+- name: Set Chrony maxpoll
+  # replace all matches with our setup
+  replace:
+    regexp: '^(server\s+\S+).*$'
+    replace: "\\1 iburst maxpoll {{ chrony_max_poll }}"
+    path: /etc/chrony.conf
+  notify: restart_chrony

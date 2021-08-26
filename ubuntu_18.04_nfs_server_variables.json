@@ -1,0 +1,6 @@
+{
+  "iso_checksum": "sha256:8c5fc24894394035402f66f3824beb7234b757dd2b5531379cb310cedfdf0996",
+  "iso_urls": "http://cdimage.ubuntu.com/releases/18.04/release/ubuntu-18.04.5-server-amd64.iso",
+  "playbook_file": "nfs_server_main.yml",
+  "ova_file_name": "Ubuntu-18.04-CIS-vmware-nfs-server-v01"
+}

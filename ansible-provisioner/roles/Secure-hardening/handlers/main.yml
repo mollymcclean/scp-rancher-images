@@ -1,0 +1,30 @@
+---
+# vim: set ft=ansible
+
+- name: restart_chrony
+  service:
+    name: chronyd
+    state: restarted
+
+- name: restart_sshd
+  service:
+    name: sshd
+    state: restarted
+
+- name: reload_auditd_rules
+  command: "augenrules --load"
+
+- name: restart_iptables
+  service:
+    name: iptables
+    state: restarted
+
+- name: restart_postfix
+  service:
+    name: postfix
+    state: restarted
+
+- name: restart_rsyslog
+  service:
+    name: rsyslog
+    state: restarted

@@ -1,0 +1,111 @@
+{
+    "builders": [
+      {
+        "boot_command": [
+          "<esc><wait>",
+          "<esc><wait>",
+          "<enter><wait>",
+          "/install/vmlinuz<wait>",
+          " initrd=/install/initrd.gz",
+          " auto-install/enable=true",
+          " debconf/priority=critical",
+          " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu_preseed.cfg<enter><wait>",
+          " -- <wait>",
+          "<enter><wait>"
+        ],
+        "disk_adapter_type": "scsi",
+        "disk_size": "51200",
+        "disk_type_id": "thin",
+        "format": "ova",
+        "guest_os_type": "ubuntu-64",
+        "headless": "false",
+        "http_directory": "src",
+        "iso_checksum": "{{user `iso_checksum`}}",
+        "iso_urls": "{{user `iso_file`}}",
+        "memory": "2048",
+        "network_adapter_type": "vmxnet3",
+        "output_directory": "output-vmware-iso",
+        "remote_host": "192.168.146.142",
+        "remote_password": "Password123456", 
+        "remote_type": "esx5",
+        "remote_username": "root",
+        "remote_datastore": "500G-local",
+        "shutdown_command": "sudo /sbin/halt -p",
+        "skip_compaction": "true",
+        "ssh_username": "ubuntu",
+        "ssh_password": "mpxPIkhhZWINu5kmwQSxpEyqMCVutPOpKNc39adiOV0=",
+        "ssh_pty": true,
+        "ssh_timeout": "20m",
+        "ssh_handshake_attempts": "20",
+        "tools_upload_flavor": "linux",
+        "type": "vmware-iso",
+        "version": "8",
+        "vm_name": "{{user `ova_file_name`}}",
+        "vnc_disable_password": "true",
+        "vmx_data": {
+          "ethernet0.networkName": "VM Network"
+        }
+      }
+    ],
+    "provisioners": [
+      {
+        "script": "scripts/ubuntu_vmware.sh",
+        "type": "shell"
+      },
+      {
+        "playbook_dir": "ansible-provisioner",
+        "playbook_file": "ansible-provisioner/ubuntu_CIS_hardening.yml",
+        "role_paths": [
+          "ansible-provisioner/roles"
+        ],
+        "type": "ansible-local"
+      },
+      {
+        "type": "shell",
+        "inline": [
+          "sudo reboot"
+        ],
+        "inline_shebang": "/bin/bash -e",
+        "expect_disconnect": "true"
+      },
+      {
+        "pause_before": "90s",
+        "playbook_dir": "ansible-provisioner",
+        "playbook_file": "ansible-provisioner/{{user `playbook_file`}}",
+        "role_paths": [
+          "ansible-provisioner/roles"
+        ],
+        "type": "ansible-local"
+      },
+      {
+        "type": "shell",
+        "inline": [
+          "sudo reboot"
+        ],
+        "inline_shebang": "/bin/bash -e",
+        "expect_disconnect": "true"
+      },
+      {
+        "script": "scripts/ubuntu_cleanup.sh",
+        "type": "shell"
+      }
+    ],
+    "variables": {
+      "initial_password": "",
+      "playbook_file": "",
+      "disk_size": "",
+      "memory": "",
+      "esx_build_node_ip": "",
+      "esx_build_node_password": "",
+      "esx_build_node_username": "",
+      "esx_build_node_data_store": "",
+      "iso_checksum": "",
+      "iso_checksum_type": "",
+      "iso_file": "",
+      "ova_file_name": ""
+    },
+    "sensitive-variables": [
+      "initial_password", 
+      "esx_build_node_password"
+    ]
+  }

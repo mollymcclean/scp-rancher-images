@@ -1,0 +1,23 @@
+# Install Hasicorp Repository for Ubuntu
+- block:
+    - name: Add Hashicorp repo GPG key
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+
+    - name: Determine the Ubutu release
+      shell: lsb_release -cs
+      register: lsb_release
+
+    - name: Add Hashicorp repo
+      apt_repository:
+        repo: deb https://apt.releases.hashicorp.com {{ lsb_release.stdout }} main
+        state: present
+  when: ansible_os_family == "Debian"
+
+- name: Update and install.
+  package:
+    name:
+     - consul
+     - vault
+    state: present

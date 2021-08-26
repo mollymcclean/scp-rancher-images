@@ -1,0 +1,27 @@
+- name: Install pre-req for monitoring
+  become: true
+  package:
+    name: audit
+    state: latest
+  when: ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+- name: Install pre-req for monitoring
+  become: true
+  package:
+    name: auditd
+    state: latest
+  when: ansible_facts.distribution in ['Ubuntu']
+
+## Commenting out System Centre code unless we need it later
+#- name: Copy System Centre management Package (scmp) package to yumrepos.d folder
+#  become: true
+#  unarchive:
+#    src: scsm-7.5.0.8001-1.el7.x86_64.tar.gz
+#    dest: /etc/yum.repos.d/
+#    mode: 0644
+
+#- name: Install scm agent rpm from a local file
+#  yum:
+#    name: /etc/yum.repos.d/scsm-7.5.0.8001-1.el7.x86_64.rpm
+#    state: present
+#    disable_gpg_check: yes

@@ -1,0 +1,8 @@
+# Installation of Docker and Harbor and it's dependencies
+
+- name: Extract harbor into our user dir
+  become: yes
+  unarchive:
+    src: "{{ harbor_binary_location }}"
+    dest: "/home/{{ harbor_user }}"
+    remote_src: yes

@@ -1,0 +1,13 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+- name: Set up Secure firewall rules
+  vars:
+    Amazon_dest: /etc/sysconfig/iptables
+    RedHat_dest: /etc/sysconfig/iptables
+    CentOS_dest: /etc/sysconfig/iptables
+    Ubuntu_dest: /etc/iptables.rules
+  copy:
+    src: files/iptables 
+    dest: "{{ vars[ansible_distribution + '_dest'] }}"
+  #notify: restart_iptables  # we don't care if it's enabled or not - should use SecurityGroups

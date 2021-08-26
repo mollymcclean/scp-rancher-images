@@ -1,0 +1,14 @@
+- name: Install Gitlab Runner Applications
+  hosts: localhost
+  become: true
+  vars:
+    ansible_ssh_user: "ubuntu"
+    ansible_interpreter: "/usr/bin/python3"
+  roles:
+    - name: ssh_ad_packages
+    - name: python_gitlab_module
+    - name: docker
+    - name: gitlab_runner
+    - name: nfs
+    - name: journald
+    - name: logrhythm

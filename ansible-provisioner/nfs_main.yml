@@ -1,0 +1,11 @@
+---
+- name: Install nfs dependencies
+  hosts: all
+  become: yes
+  vars:
+    ansible_ssh_user: "ubuntu"
+  roles:
+    - ssh_ad_packages
+    - role: nfs
+      network_packages: True
+    - name: logrhythm

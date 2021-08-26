@@ -1,0 +1,54 @@
+---
+- name: Create directory for Rancher images
+  file:
+    path: "/var/tmp/rancher-images"
+    state: directory
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+    mode: 0755
+
+- name: Copy Rancher container image list to the Bastion server
+  copy:
+    src: "{{ role_path }}/files/rancher-images.txt"
+    dest: "/var/tmp/rancher-images/rancher-images.txt"
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+    mode: 0644
+
+- name: Copy Rancher image save script to Bastion server
+  copy:
+    src: "{{ role_path }}/files/rancher-save-images.sh"
+    dest: "/home/{{ ansible_ssh_user }}/rancher-save-images.sh"
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+    mode: 0750
+
+#- name: Add any IPs to the hosts file to resolve the source repo if no DNS is available
+#  lineinfile:
+#    dest: /etc/hosts
+#    regexp: "^(#) ?docker.sourcerepo.com(\\s|$)"
+#    line: "172.21.0.23 docker.sourcerepo.com"
+#    state: present
+#    owner: root
+#    group: root
+#    mode: 0644
+#    create: true
+
+- name: Create a tar.gz package containing the Rancher container images
+  become: true
+  #ansible.builtin.command: "/home/{{ ansible_ssh_user }}/rancher-save-images.sh -l /var/tmp/rancher-images/rancher-images.txt -i /var/tmp/rancher-images/rancher-images.tar.gz --repo <repo fqdn>:<port>"
+  command: "/home/{{ ansible_ssh_user }}/rancher-save-images.sh -l /var/tmp/rancher-images/rancher-images.txt -i /var/tmp/rancher-images/rancher-images.tar.gz"
+  register: image_push_status
+  when: image_push_status is not defined
+
+- name: List container tar.gz file
+  shell: /usr/bin/du -sk /var/tmp/rancher-images/rancher-images.tar.gz | awk '{print $1}'
+  register: container_image_file_size
+  #failed_when: container_image_file_size.stdout_lines -lt 2241008
+
+- name: Set the required permission on the container image file
+  file:
+    path: "/var/tmp/rancher-images/rancher-images.tar.gz"
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+    mode: 0640

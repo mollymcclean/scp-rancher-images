@@ -1,0 +1,35 @@
+---
+# defaults file for roles/linux_sysprep
+
+linux_sysprep_abrt: true
+linux_sysprep_bash: true
+linux_sysprep_blkid: true
+linux_sysprep_cacerts: true
+linux_sysprep_crash: true
+linux_sysprep_cron: true
+linux_sysprep_dhcp_client: true
+linux_sysprep_dhcp_server: true
+linux_sysprep_dovecot: true
+linux_sysprep_firewall: false     # keep firewall rules
+linux_sysprep_reconfig: false     # don't reconfigure
+linux_sysprep_krb: true
+linux_sysprep_logs: true
+linux_sysprep_emailspool: true
+linux_sysprep_pkgmgr: true
+linux_sysprep_pam: true
+linux_sysprep_puppet: true
+linux_sysprep_rhnpki: true
+linux_sysprep_rhnsysid: true
+linux_sysprep_rpmdb: true
+linux_sysprep_samba: true
+linux_sysprep_hwid: true
+linux_sysprep_ssh_hostkeys: true
+linux_sysprep_user_ssh_dirs: true
+linux_sysprep_sssd: true
+linux_sysprep_tmp: true
+linux_sysprep_persnet: true
+linux_sysprep_utmp: true
+linux_sysprep_yumuuid: true
+
+linux_sysprep_eth_hwaddr: true
+linux_sysprep_eth_uuid: true

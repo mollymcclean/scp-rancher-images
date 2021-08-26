@@ -1,0 +1,6 @@
+helm_version: v3.2.4
+
+helm_source: "https://get.helm.sh/helm-{{ helm_version }}-linux-amd64.tar.gz"
+helm_remote_source: yes
+
+helm_tmp_destination: "/home/{{ ansible_ssh_user }}"

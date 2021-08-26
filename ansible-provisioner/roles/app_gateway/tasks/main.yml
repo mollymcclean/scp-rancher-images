@@ -1,0 +1,11 @@
+---
+- name: Allow IP forwarding from the app gateway
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+
+- name: Install dnsmasq
+  package:
+    name: dsnmasq
+    state: latest

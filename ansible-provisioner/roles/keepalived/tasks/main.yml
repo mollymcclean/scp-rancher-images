@@ -1,0 +1,21 @@
+---
+- name: Install keepalived dependencies
+  package:
+    name:
+      - kernel-headers
+      - kernel-devel
+    state: latest
+  when: ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+- name: Install keepalived dependencies
+  package:
+    name:
+      - linux-headers-generic
+      - linux-libc-dev
+    state: latest
+  when: ansible_facts.distribution in ['Ubuntu']
+
+- name: Install keepalived
+  package:
+    name: keepalived
+    state: latest

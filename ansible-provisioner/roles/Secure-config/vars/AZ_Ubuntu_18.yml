@@ -1,0 +1,83 @@
+Secure_packages:
+#
+# standard packages
+#
+# Access
+  - openssh-server
+# required for user accounts
+  - dbus
+# Security
+  - auditd
+  #- ntp - rhel8 replaced by chrony
+  - chrony
+#pam_passwdqc # not available rhel7
+  - sudo
+  - wget
+  - openssh-client
+  #- tcp-wrappers # oddly not available https://launchpad.net/ubuntu/bionic/+source/tcp-wrappers
+  # actually called 'tcpd'
+  - tcpd
+  #- iptables-services
+  - iptables-persistent
+  - netfilter-persistent
+# SCAP Security
+  #- openscap
+  #- openscap-utils
+  #- scap-security-guide
+# Diagnostics
+  - dnsutils
+  - sysstat
+  - acct
+  - strace
+  #- which
+  - man
+  - manpages
+  - mailutils
+  - perl
+  - tcpdump
+  - lsof
+# as of v6.7-1.0
+  - lshw
+  - sg3-utils
+  - lsscsi
+  - pciutils
+  - eject
+# end 6.7-1.0
+#
+# Tools
+  - zip
+  - unzip
+  - vim
+  - ed
+  - parted
+  - rsync
+  - w3m
+  - biosdevname
+  - ksh
+  - curl
+
+# others
+# lsb-release used by many vendor install scripts
+  - lsb-release
+
+  - x86info
+  - tuned
+
+#7.2-1.0
+  - tree
+  #- tmpwatch # not available https://launchpad.net/ubuntu/bionic/+source/tmpwatch
+  - tmux
+
+# uudecode etc.
+  - sharutils
+
+# OPTMIS-10
+  #- perf
+  - linux-tools-virtual
+# OPTMIS-31
+  - dstat
+
+  - libpam-pwquality
+  - console-data
+
+  - debsums

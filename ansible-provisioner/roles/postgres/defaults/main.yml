@@ -1,0 +1,21 @@
+consul_name_service: consul
+consul_version: "1.9.1"
+consul_release: "consul_{{ consul_version }}_linux_amd64.zip"
+# NOTE: consul_area is the location where the console_<version>_linux_amd.zip and consul-template_<version>_lunux_amd.zip files have been
+# saved to during the postgres VM image creation. This is /home/ubuntu by default. 
+consul_area: "/home/{{ ansible_ssh_user }}/"
+consul_download_url: "https://releases.hashicorp.com/{{ consul_name_service }}/{{ consul_version }}/{{ consul_release }}"
+
+consul_tpl_name_service: consul-template
+consul_tpl_version: "0.25.1"
+consul_tpl_release: "consul-template_{{ consul_tpl_version }}_linux_amd64.zip"
+consul_tpl_area: "/home/{{ ansible_ssh_user }}/"
+consul_tpl_download_url: "https://releases.hashicorp.com/{{ consul_tpl_name_service }}/{{ consul_tpl_version }}/{{ consul_tpl_release }}"
+
+postgresql_version: 13
+postgresql_rhel_packages:
+  - postgresql{{ postgresql_version }}-server
+  - postgresql{{ postgresql_version }}-contrib
+postgresql_ubuntu_packages:
+  - postgresql-{{ postgresql_version }}
+  - postgresql-contrib

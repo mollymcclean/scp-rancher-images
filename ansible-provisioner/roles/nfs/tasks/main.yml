@@ -1,0 +1,38 @@
+- name: Install nfs-util
+  package:
+    name:
+      - nfs-utils
+    state: latest
+  when: ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+- name: Install nfs-common
+  package:
+    name:
+      - nfs-common
+    state: latest
+  when: ansible_facts.distribution in ['Ubuntu']
+
+- name: copy rpm package
+  become: true
+  copy:
+    src: lgtoclnt-19.1.1.0-1.x86_64.rpm
+    dest: /etc/yum.repos.d/lgtoclnt-19.1.1.0-1.x86_64.rpm
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+    mode: 0666
+  when: network_packages and ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+- name: Install network dependency packages
+  package:
+    name:
+      - libncurses*
+    state: latest
+  when: network_packages and ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+- name: Install rpm package
+  become: true
+  yum:
+    name: /etc/yum.repos.d/lgtoclnt-19.1.1.0-1.x86_64.rpm
+    state: present
+    disable_gpg_check: yes
+  when: network_packages and ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']

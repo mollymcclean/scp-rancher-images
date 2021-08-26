@@ -1,0 +1,21 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+- name: Set core dumps
+  lineinfile:
+    path: /etc/security/limits.conf
+    regexp: '^\*\s+hard\s+core\s+0'
+    line: '*           hard    core          0'
+    insertbefore: '# End of file'
+    
+- name: Stop and disable some services
+  service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  ignore_errors: yes  # ignore if it doesnt exist - as it breaks when enabled: is used
+  loop:
+    - rsync
+    - rpcbind
+    - nfs
+    - named

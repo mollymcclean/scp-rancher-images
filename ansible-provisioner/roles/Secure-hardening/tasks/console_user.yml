@@ -1,0 +1,21 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+
+- name: DenyUsers secure in sshd
+  lineinfile:
+    line: "DenyUsers secure"
+    regex: "^DenyUsers "
+    state: present
+    path: /etc/ssh/sshd_config
+  notify: restart_sshd
+
+
+- name: create console user
+  vars:
+    secure_password: "last Resort breakFix {{ ansible_date_time.month }}{{ansible_date_time.year}}"
+    # eg. "last Resort breakFix 062019"
+  user: 
+    name: secure
+    password: "{{ secure_password | password_hash('sha512') }}"
+    comment: "console only - do not allow SSH"

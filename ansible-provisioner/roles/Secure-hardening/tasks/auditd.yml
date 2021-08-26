@@ -1,0 +1,18 @@
+---
+# vim: set ft=ansible
+
+# i dont like two-step tasks to delete files
+- name: remove old auditd rules (from ansible-hardening role)
+  shell: "rm -fv /etc/audit/rules.d/*.rules"
+  args:
+    warn: false # set warn=false to prevent warning
+  register: old_rules
+
+- debug:
+    msg: "{{ old_rules.stdout_lines }}"
+
+- name: Set up Secure auditd rules for {{ ansible_distribution }}
+  copy:
+    src: "files/auditd.rules.{{ ansible_distribution }}"
+    dest: /etc/audit/rules.d/Secure.rules
+  notify: reload_auditd_rules

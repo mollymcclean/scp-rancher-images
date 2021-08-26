@@ -1,0 +1,65 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+- name: Ensure PAM variable minlen is set accordingly
+  lineinfile:
+    create: yes
+    dest: "/etc/security/pwquality.conf"
+    regexp: '^#?\s*minlen'
+    line: "minlen = {{ var_password_pam_minlen }}"
+
+- name: Ensure PAM variable maxclassrepeat is set accordingly
+  lineinfile:
+    create: yes
+    dest: "/etc/security/pwquality.conf"
+    regexp: '^#?\s*maxclassrepeat'
+    line: "maxclassrepeat = {{ var_password_pam_maxclassrepeat }}"
+
+- name: Ensure PAM variable maxrepeat is set accordingly
+  lineinfile:
+    create: yes
+    dest: "/etc/security/pwquality.conf"
+    regexp: '^#?\s*maxrepeat'
+    line: "maxrepeat = {{ var_password_pam_maxrepeat }}"
+
+- name: Ensure PAM variable dcredit is set accordingly
+  lineinfile:
+    create: yes
+    dest: "/etc/security/pwquality.conf"
+    regexp: '^#?\s*dcredit'
+    line: "dcredit = {{ var_password_pam_dcredit }}"
+
+- name: Ensure PAM variable minclass is set accordingly
+  lineinfile:
+    create: yes
+    dest: "/etc/security/pwquality.conf"
+    regexp: '^#?\s*minclass'
+    line: "minclass = {{ var_password_pam_minclass }}"
+
+- name: Ensure PAM variable difok is set accordingly
+  lineinfile:
+    create: yes
+    dest: "/etc/security/pwquality.conf"
+    regexp: '^#?\s*difok'
+    line: "difok = {{ var_password_pam_difok }}"
+
+- name: Ensure PAM variable ocredit is set accordingly
+  lineinfile:
+    create: yes
+    dest: "/etc/security/pwquality.conf"
+    regexp: '^#?\s*ocredit'
+    line: "ocredit = {{ var_password_pam_ocredit }}"
+
+- name: Ensure PAM variable lcredit is set accordingly
+  lineinfile:
+    create: yes
+    dest: "/etc/security/pwquality.conf"
+    regexp: '^#?\s*lcredit'
+    line: "lcredit = {{ var_password_pam_lcredit }}"
+
+- name: Ensure PAM variable ucredit is set accordingly
+  lineinfile:
+    create: yes
+    dest: "/etc/security/pwquality.conf"
+    regexp: '^#?\s*ucredit'
+    line: "ucredit = {{ var_password_pam_ucredit }}"

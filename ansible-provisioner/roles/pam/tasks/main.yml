@@ -1,0 +1,20 @@
+---
+- name: Insert 'account required pam_tally2.so' as the first non-commented line
+  become: yes
+  lineinfile:
+    dest: /etc/pam.d/common-account
+    line: 'account required'
+    insertbefore: "^(?!\\s*#).+"
+    firstmatch: yes
+    state: present
+  tags: pam
+
+- name: Insert 'auth required pam_tally2.so onerr=fail audit silent deny=5 unlock_tome=30' as the first non-commented line
+  become: yes
+  lineinfile:
+    dest: /etc/pam.d/common-auth
+    line: 'auth required pam_tally2.so onerr=fail audit silent deny=5 unlock_tome=30'
+    insertbefore: "^(?!\\s*#).+"
+    firstmatch: yes
+    state: present
+  tags: pam

@@ -1,0 +1,21 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+- debug:
+    msg: "Running TCP wrappers update"
+    
+- name: Set hosts.deny
+  template:
+    src: hosts.deny
+    dest: /etc/hosts.deny
+    mode: '644'
+    owner: root
+    group: root
+
+- name: Set hosts.allow
+  template:
+    src: hosts.allow
+    dest: /etc/hosts.allow
+    mode: '644'
+    owner: root
+    group: root

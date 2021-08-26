@@ -1,0 +1,23 @@
+---
+# vim: set ft=ansible  ts=2 sw=2 et:
+
+- name: Blacklist kernel modules
+  lineinfile:
+    create: yes
+    dest: "/etc/modprobe.d/{{item}}.conf"
+    regexp: '{{item}}'
+    line: "install {{item}} /bin/true"
+  with_items:
+    - sctp
+    - rds
+    - tipc
+    - dccp
+    - vfat
+    
+
+- name: Ensure 'ipv6' is disabled
+  lineinfile:
+    create: yes
+    dest: "/etc/modprobe.d/ipv6_disable.conf"
+    regexp: 'ipv6'
+    line: "options ipv6 disable=1"

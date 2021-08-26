@@ -1,0 +1,14 @@
+- name: Install dependencies for RKE
+  hosts: localhost
+  become: true
+  vars:
+    ansible_ssh_user: "ubuntu"
+    ansible_interpreter: "/usr/bin/python3"
+  roles:
+    - name: rke-node-config
+    - name: docker
+    - name: ssh_ad_packages
+    - name: journald
+    - name: nfs
+    - name: logrhythm
+    - name: keepalived

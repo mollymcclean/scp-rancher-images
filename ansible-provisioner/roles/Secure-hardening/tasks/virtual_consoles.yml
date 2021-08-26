@@ -1,0 +1,9 @@
+---
+# vim: set ft=ansible  ts=2 sw=2 et:
+
+- name: "Restrict Virtual Console Root Logins"
+  lineinfile:
+    dest: /etc/securetty
+    regexp: '^vc'
+    state: absent
+

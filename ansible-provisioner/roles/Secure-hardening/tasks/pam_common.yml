@@ -1,0 +1,114 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+# Ubuntu
+- set_fact:
+    pwhistory_loc: common-password
+    pwhistory_control: "[success=1 default=ignore]"
+
+    wheel_control: sufficient
+    wheel_module: pam_rootok.so
+  when: ansible_distribution == 'Ubuntu'
+
+- set_fact:
+    pwhistory_loc: system-auth
+    pwhistory_control: sufficient
+
+    # 7.6
+    #wheel_control: required  
+    #wheel_module: pam_listfile.so
+    # 7.7
+    wheel_control: sufficient
+    wheel_module: pam_rootok.so
+  when: (ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS') and ansible_distribution_major_version|int == 7
+
+- set_fact:
+    pwhistory_loc: system-auth
+    pwhistory_control: sufficient
+
+    wheel_control: sufficient
+    wheel_module: pam_rootok.so
+  when: ansible_distribution == 'RedHat' and ansible_distribution_version|int >= 8
+
+
+# Amazon
+- set_fact:
+    pwhistory_loc: system-auth
+    pwhistory_control: sufficient
+
+    wheel_control: sufficient
+    wheel_module: pam_rootok.so 
+  when: ansible_distribution == 'Amazon'
+
+
+
+###########################################################################
+# 
+# pam_pwhistory.so
+#
+
+# ubuntu
+# /etc/pam.d/common-password
+# password    required    pam_pwhistory.so  remember=X
+# before
+# password        [success=1 default=ignore]      pam_unix.so obscure use_authtok try_first_pass sha512
+
+# redhat
+# system-auth _> symlink -> system-auth-ac
+# password    required    pam_pwhistory.so  remember=X
+# password    sufficient    pam_unix.so 
+
+- name: set password pam_pwhistory before pam_unix.so
+  pamd:
+      # /etc/pam.d/common-password
+    name: "{{ pwhistory_loc }}"
+      # password        [success=1 default=ignore]      pam_unix.so obscure use_authtok try_first_pass sha512
+    type: password
+    control: "{{ pwhistory_control }}"
+    module_path: pam_unix.so
+      # password    required    pam_pwhistory.so  remember=X
+    new_type: password
+    new_control: required
+    new_module_path: pam_pwhistory.so
+    module_arguments: 
+      - remember=10
+      - retry=3
+    state: before
+
+###########################################################################
+# 
+# pam_wheel.so
+#
+
+  # ubuntu
+  # su
+  # auth       sufficient pam_rootok.so
+  # auth       required   pam_wheel.so
+
+  # redhat
+  # su
+  # auth           required pam_listfile.so item=user sense=allow onerr=fail file=/etc/security/su-wheel-access
+  # auth           required pam_wheel.so use_uid group=wheel
+
+- name: "set auth pam_wheel after {{ wheel_control }} {{ wheel_module }}"
+  pamd:
+    name: su
+
+    type: auth
+    control: "{{ wheel_control }}"
+    module_path: "{{ wheel_module }}"
+
+    new_type: auth
+    new_control: required
+    new_module_path: pam_wheel.so
+    module_arguments: 
+      - use_uid
+      - group=wheel
+    state: after
+
+
+# create group wheel
+- name: Ensure group "wheel" exists
+  group:
+    name: wheel
+    state: present

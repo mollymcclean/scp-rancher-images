@@ -1,0 +1,14 @@
+{
+    "initial_password": "mpxPIkhhZWINu5kmwQSxpEyqMCVutPOpKNc39adiOV0=",
+    "playbook_file": "gitlab_runner_main.yml",
+    "disk_size": "51200",
+    "memory": "1024",
+    "esx_build_node_ip": "192.168.146.142",
+    "esx_build_node_password": "Password123456",
+    "esx_build_node_username": "root",
+    "esx_build_node_data_store": "500G-local",
+    "iso_checksum": "8c5fc24894394035402f66f3824beb7234b757dd2b5531379cb310cedfdf0996",
+    "iso_checksum_type": "sha256",
+    "iso_file": "http://cdimage.ubuntu.com/releases/18.04/release/ubuntu-18.04.5-server-amd64.iso",
+    "ova_file_name": "Ubuntu-18.04-CIS-vmware-gitlab-runner-v01"
+  }

@@ -1,0 +1,12 @@
+---
+- name: Install centos release
+  package:
+    name: centos-release-scl
+    state: latest
+  when: ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+- name: Install gcc and dependencies
+  yum:
+    name: devtoolset-8-gcc*
+    state: latest
+  when: ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']

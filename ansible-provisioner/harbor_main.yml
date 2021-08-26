@@ -1,0 +1,14 @@
+- name: Install Harbor, Docker and dependencies
+  hosts: localhost
+  become: true
+  vars:
+    ansible_ssh_user: "ubuntu"
+    ansible_interpreter: "/usr/bin/python3"
+  roles:
+    - name: harbor
+    - name: docker
+    - name: ssh_ad_packages
+    - name: keepalived
+    - name: nfs
+    - name: journald
+    - name: logrhythm

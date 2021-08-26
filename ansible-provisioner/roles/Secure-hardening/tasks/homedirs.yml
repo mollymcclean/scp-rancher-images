@@ -1,0 +1,7 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+- name: Set user home directories to mode 750
+  shell: "chmod 750 /home/*"
+  args:
+    warn: no

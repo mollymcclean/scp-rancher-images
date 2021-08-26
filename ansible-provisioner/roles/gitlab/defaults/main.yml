@@ -1,0 +1,11 @@
+gitlab_dependencies:
+  - openssh-server
+  - postfix
+  - curl
+  - openssl
+  - tzdata
+  - ca-certificates
+
+gitlab_edition: "gitlab-ce"
+# RHEL - gitlab_version: 13.4.1-ce.0.el7
+

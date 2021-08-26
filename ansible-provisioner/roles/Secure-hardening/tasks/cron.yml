@@ -1,0 +1,27 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+- name: set perms on /etc/cron files
+  file:
+    path: "{{ item }}"
+    state: touch    # create if not already there
+    mode: '0600'
+    owner: 'root'
+    group: 'root'
+  loop:
+    - /etc/crontab
+    - /etc/cron.deny
+
+- name: set perms on /etc/cron folders
+  file:
+    path: "{{ item }}"
+    mode: '0700'
+    owner: 'root'
+    group: 'root'
+  loop:
+    - /etc/cron.hourly
+    - /etc/cron.daily
+    - /etc/cron.weekly
+    - /etc/cron.monthly
+    - /etc/cron.d
+  

@@ -1,0 +1,579 @@
+# vim: set ft=sh
+##
+##  RMI compliance audit.rules - March 2010
+##
+
+## https://www.redhat.com/archives/linux-audit/
+
+##
+## v1.0 - CrossN - March 2010 - Initial version derived from capp.rules ***64-bit*** version
+## v1.1 - CrossN - Jan 2013 - RHEL6 RMI and auditd version 2.2.2
+## v2.0 - CrossN - Apr 2014 - 64bit only, excludes added
+## v2.1 - CrossN - Dec 2014 - Roll up of all changes - Secure build
+## v7.1-1.0 - CrossN - Sep 2015 - RHEL7 changes, also auid>1000 now.
+##
+
+## events trigger in top down fashion, thus some CAPP rules may trigger before the RMI ones.
+
+
+######################### CAPP RULES FIRST ########################
+
+## Remove any existing rules
+-D
+
+## Increase buffer size to handle the increased number of messages.
+## Feel free to increase this if the machine panic's
+-b 16384
+
+## Set failure mode to printk - lets not leave it at 2=panic
+-f 1
+
+## exclude CWD
+-A exclude,always -F msgtype=CWD
+
+## Craig Newman discovered - udev unlink log thrash - 24/09/2018
+-a exit,never -F arch=b64 -S unlink -F exe=/usr/lib/systemd/systemd-udevd 
+
+# noisey login daemon - CrossN 24/09/2018
+-a exit,never -F arch=b64 -S mkdir -F subj_type=systemd_logind_t
+
+# noisey systemd CrossN 25/09/2018
+-a exit,never -F arch=b64 -S mkdir -F exe=/usr/lib/systemd/systemd
+-a exit,never -F arch=b64 -S rmdir -F exe=/usr/lib/systemd/systemd
+-a exit,never -F arch=b64 -S unlink -F exe=/usr/lib/systemd/systemd
+
+#
+# samba - socket noise - CrossN 24/09/2018
+#
+#-a exit,never -F arch=b64 -S unlink -F path=/var/lib/samba/private/msg.sock
+
+
+#
+# Voyance directory excludes
+#
+#-A exit,never -F dir=/opt/smarts-ncm/db/controldb/data/pg_stat_tmp/
+#-A exit,never -F dir=/opt/smarts-ncm/data/appserver/pops/
+#-A exit,never -F dir=/opt/smarts-ncm/data/devserver/syssync/
+#-A exit,never -F dir=/opt/smarts-ncm/data/devserver/cm/cache/
+#-A exit,never -F perm=rx -F dir=/opt/smarts-ncm/cgi-bin/
+#-A exit,never -F dir=/opt/smarts-ncm/ui/
+#-A exit,never -F dir=/opt/smarts-ncm/logs/
+#-A exit,never -F dir=/opt/smarts-ncm/cm/
+
+#
+# Netbackup directory excludes
+#
+#-A exit,never -F dir=/usr/openv/var/host_cache
+
+
+##
+## FAU_SAR.1, FAU_SAR.2, FMT_MTD.1
+## successful and unsuccessful attempts to read information from the
+## audit records; all modifications to the audit trail
+##
+#####-w /var/log/audit/ -k LOG_audit
+#-w /var/log/audit/audit_log -k LOG_audit_log
+#-w /var/log/audit/audit_log.1 -k LOG_audit_log
+#-w /var/log/audit/audit_log.2 -k LOG_audit_log
+#-w /var/log/audit/audit_log.3 -k LOG_audit_log
+#-w /var/log/audit/audit_log.4 -k LOG_audit_log
+
+##
+## FAU_SEL.1, FMT_MTD.1
+## modifications to audit configuration that occur while the audit
+## collection functions are operating; all modications to the set of
+## audited events
+##
+-w /etc/auditd.conf -k CFG_auditd.conf
+-w /etc/audit.rules -k CFG_audit.rules
+
+##
+## FDP_ACF.1, FMT_MSA.1, FMT_MTD.1, FMT_REV.1
+## all requests to perform an operation on an object covered by the
+## SFP; all modifications of the values of security attributes;
+## modifications to TSF data; attempts to revoke security attributes
+##
+
+## Objects covered by the Security Functional Policy (SFP) are:
+## - File system objects (files, directories, special files, extended attributes)
+## - IPC objects (SYSV shared memory, message queues, and semaphores)
+
+## Operations on file system objects - by default, only monitor
+## files and directories covered by filesystem watches. Replace
+## "possible" with "always" to create audit records for all uses of this
+## syscall.
+
+# reduced due to NMC issues
+-a exit,always -F arch=b64 -S fchmod -S fchown -S lchown -k ownership_action
+
+
+## directory operations
+-a exit,always -F arch=b64 -S mkdir -S rmdir -k dir_action
+
+## moving, removing, and linking
+-a exit,always -F arch=b64 -S unlink -S rename -S link -S symlink -k link_action
+
+## Extended attribute operations
+## Enable if you are interested in these events - combine where possible
+#-a entry,always -S setxattr
+#-a entry,always -S lsetxattr
+#-a entry,always -S fsetxattr
+#-a entry,always -S removexattr
+#-a entry,always -S lremovexattr
+#-a entry,always -S fremovexattr
+
+## special files
+-a exit,always -F arch=b64 -S mknod -k mknod
+
+## Other file system operations
+-a exit,always -F arch=b64 -S mount -S umount2 -k mount_action
+
+## SYSV message queues
+## Enable if you are interested in these events (x86)
+## msgctl
+#-a entry,always -S ipc -F a0=14
+## msgget
+#-a entry,always -S ipc -F a0=13
+## Enable if you are interested in these events (x86_64,ia64)
+#-a entry,always -S msgctl
+#-a entry,always -S msgget
+
+## SYSV semaphores
+## Enable if you are interested in these events (x86)
+## semctl
+#-a entry,always -S ipc -F a0=3
+## semget
+#-a entry,always -S ipc -F a0=2
+## semop
+#-a entry,always -S ipc -F a0=1
+## semtimedop
+#-a entry,always -S ipc -F a0=4
+## Enable if you are interested in these events (x86_64, ia64)
+#-a entry,always -S semctl
+#-a entry,always -S semget
+#-a entry,always -S semop
+#-a entry,always -S semtimedop
+
+## SYSV shared memory
+## Enable if you are interested in these events (x86)
+## shmctl
+#-a entry,always -S ipc -F a0=24
+## shmget
+#-a entry,always -S ipc -F a0=23
+## Enable if you are interested in these events (x86_64, ia64)
+#-a entry,always -S shmctl
+#-a entry,always -S shmget
+
+##
+## FIA_USB.1
+## success and failure of binding user security attributes to a subject
+##
+## Enable if you are interested in these events
+##
+#-a entry,always -S clone
+#-a entry,always -S fork
+#-a entry,always -S vfork
+## For ia64 architecture, disable fork and vfork rules above, and
+## enable the following:
+#-a entry,always -S clone2
+
+##
+## FMT_MSA.3
+## modifications of the default setting of permissive or restrictive
+## rules, all modifications of the initial value of security attributes
+##
+## Enable if you are interested in these events
+##
+#-a entry,always -S umask
+
+##
+## FPT_STM.1
+## changes to the time
+##
+-a exit,always -F arch=b64 -S adjtimex -S settimeofday -k time_action
+
+##
+## FTP_ITC.1
+## set-up of trusted channel
+##
+-w /usr/sbin/stunnel -p x -k stunnel
+
+##
+## Security Databases
+##
+
+## at configuration & scheduled jobs
+-w /var/spool/at -k LOG_at
+-w /etc/at.allow -k CFG_at.allow
+-w /etc/at.deny -k CFG_at.deny
+
+## cron configuration & scheduled jobs
+-w /etc/cron.allow -p wa -k CFG_cron.allow
+-w /etc/cron.deny -p wa -k CFG_cron.deny
+## these will only work if files are specified
+-w /etc/cron.d/ -p wa -k CFG_cron.d
+-w /etc/cron.daily/ -p wa -k CFG_cron.daily
+-w /etc/cron.hourly/ -p wa -k CFG_cron.hourly
+-w /etc/cron.monthly/ -p wa -k CFG_cron.monthly
+-w /etc/cron.weekly/ -p wa -k CFG_cron.weekly
+
+-w /etc/crontab -p wa -k CFG_crontab
+-w /var/spool/cron/root -k CFG_crontab_root
+
+## user, group, password databases
+-w /etc/group -p wa -k CFG_group
+-w /etc/passwd -p wa -k CFG_passwd
+-w /etc/gshadow -p wa -k CFG_gshadow
+-w /etc/shadow -p wa -k CFG_shadow
+-w /etc/security/opasswd -p wa -k CFG_opasswd
+
+## login configuration and information
+-w /etc/login.defs -p wa -k CFG_login.defs
+-w /etc/securetty -k CFG_securetty
+-w /var/log/faillog -k LOG_faillog
+-w /var/log/lastlog -p wa -k LOG_lastlog
+-w /var/run/faillock/ -p wa -k logins
+
+## network configuration
+-w /etc/hosts -p wa -k CFG_hosts
+## these will only work if files are specified
+-w /etc/sysconfig/ -k etc_sysconfig
+
+## system startup scripts
+-w /etc/inittab -p wa -k CFG_inittab
+## these will only work if files are specified
+-w /etc/rc.d/init.d/ -k init.d
+-w /etc/rc.d/init.d/auditd -p wa -k CFG_initd_auditd
+
+## library search paths
+-w /etc/ld.so.conf -p wa -k CFG_ld.so.conf
+
+## local time zone
+-w /etc/localtime -p wa -k CFG_localtime
+
+## kernel parameters
+-w /etc/sysctl.conf -p wa -k CFG_sysctl.conf
+
+## modprobe configuration
+-w /etc/modprobe.conf -p wa -k CFG_modprobe.conf
+
+## pam configuration
+## these will only work if files are specified
+-w /etc/pam.d/ -p wa -k pam.d
+
+## postfix configuration
+-w /etc/aliases -p wa -k CFG_aliases
+-w /etc/postfix/ -p wa -k CFG_postfix
+
+## ssh configuration
+-w /etc/ssh/sshd_config -k CFG_sshd_config
+
+## stunnel configuration
+#-w /etc/stunnel/stunnel.conf -k CFG_stunnel.conf
+#-w /etc/stunnel/stunnel.pem -k CFG_stunnel.pem
+
+## vsftpd configuration
+#-w /etc/vsftpd.ftpusers -k CFG_vsftpd.ftpusers
+#-w /etc/vsftpd/vsftpd.conf -k CFG_vsftpd.conf
+
+## Not specifically required by CAPP; but common sense items
+#-a exit,always -F arch=b64 -S sethostname
+-w /etc/issue -p wa -k CFG_issue
+-w /etc/issue.net -p wa -k CFG_issue.net
+
+######################### RMI RULES NEXT ########################
+
+#syscalls
+# http://www.kernel.org/doc/man-pages/online/pages/man2/syscalls.2.html
+
+## RMI - sudo config
+-w /etc/sudoers -p wa -k CFG_sudoers
+-w /etc/sudoers.d/ -p wa  -k CFG_sudoers
+
+-w /etc/ssh/ssh_config -k CFG_ssh
+
+
+## something that is easy to do in Solaris - log all root user access
+#https://www.redhat.com/archives/linux-audit/2009-October/msg00009.html
+# Im wondering if theres a way to limit this to only audit events that
+# happen from a real tty, e.g. a human user.
+## no auid>=500 allowed on this version - yuck,so we cant do auid>=500
+# doesnt work for RHEL 4.x and audit v1.0.16
+#-F auid>=500 -F auid!=4294967295 - from "man audit.rules"
+-a exit,always -F arch=b64 -S execve -F euid=0 -F auid>=1000 -F auid!=4294967295 -k execute_binary
+
+
+# startup files
+-w /etc/grub2.cfg -p wa -k GRUB
+-w /boot/grub2/grub.cfg -p wa -k GRUB
+
+#
+# log certain application access
+#
+## priv apps
+-w /bin/su -p x -k APPS
+-w /usr/bin/sudo -p x -k APPS
+-w /usr/sbin/visudo -p x -k APPS
+-w /usr/sbin/sudoedit -p x -k APPS
+## network apps
+-w /bin/ping -p x -k APPS
+-w /usr/bin/ssh -p x -k APPS
+-w /usr/bin/scp -p x -k APPS
+-w /usr/bin/sftp -p x -k APPS
+#-w /usr/kerberos/bin/telnet -p x -k APPS
+
+##user account changes
+-w /usr/sbin/useradd  -p x -k USERacc
+-w /usr/sbin/userdel  -p x -k USERacc
+-w /usr/sbin/usermod  -p x -k USERacc
+-w /usr/sbin/groupadd -p x -k GROUPacc
+-w /usr/sbin/groupdel -p x -k GROUPacc
+-w /usr/sbin/groupmod -p x -k GROUPacc
+
+## Sticky bits - some commented out as they are picked up in the above watches
+# find / -xdev -type f -perm +u=s -print | awk '{print "-w "$1" -p x -k SUID"}'
+-w /sbin/pwdb_chkpwd -p x -k SUID
+-w /sbin/pam_timestamp_check -p x -k SUID
+-w /sbin/unix_chkpwd -p x -k SUID
+-w /bin/mount -p x -k SUID
+-w /bin/traceroute6 -p x -k SUID
+#-w /bin/su -p x -k SUID
+-w /bin/umount -p x -k SUID
+-w /bin/traceroute -p x -k SUID
+-w /bin/ping6 -p x -k SUID
+#-w /bin/ping -p x -k SUID
+#-w /usr/libexec/openssh/ssh-keysign -p x -k SUID
+-w /usr/libexec/pt_chown -p x -k SUID
+-w /usr/sbin/userisdnctl -p x -k SUID
+-w /usr/sbin/usernetctl -p x -k SUID
+-w /usr/sbin/userhelper -p x -k SUID
+-w /usr/sbin/ccreds_validate -p x -k SUID
+-w /usr/bin/rcp -p x -k SUID
+-w /usr/bin/kgrantpty -p x -k SUID
+-w /usr/bin/rsh -p x -k SUID
+-w /usr/bin/chage -p x -k SUID
+-w /usr/bin/lppasswd -p x -k SUID
+-w /usr/bin/newgrp -p x -k SUID
+#-w /usr/bin/sudo -p x -k SUID
+-w /usr/bin/gpasswd -p x -k SUID
+-w /usr/bin/kpac_dhcp_helper -p x -k SUID
+-w /usr/bin/sg -p x -k SUID
+-w /usr/bin/at -p x -k SUID
+-w /usr/bin/passwd -p x -k SUID
+-w /usr/bin/chsh -p x -k SUID
+-w /usr/bin/chfn -p x -k SUID
+-w /usr/bin/rlogin -p x -k SUID
+-w /usr/bin/crontab -p x -k SUID
+#-w /usr/kerberos/bin/ksu -p x -k SUID
+
+
+# find / -xdev -type f -perm +g=s -print | awk '{print "-w "$1" -p x -k GUID"}'
+-w /sbin/netreport -p x -k GUID
+-w /usr/sbin/utempter -p x -k GUID
+-w /usr/sbin/lockdev -p x -k GUID
+-w /usr/sbin/sendmail.sendmail -p x -k GUID
+-w /usr/bin/write -p x -k GUID
+-w /usr/bin/lockfile -p x -k GUID
+-w /usr/bin/slocate -p x -k GUID
+-w /usr/bin/ssh-agent -p x -k GUID
+-w /usr/bin/wall -p x -k GUID
+
+#
+# CrossN - 12 March 2014 - Additional rules from DoD
+#
+
+# Rule Version (STIG-ID): RHEL-06-000165
+# audit_time_rules
+-a always,exit -F arch=b64 -S adjtimex -k audit_time_rules
+
+#Rule Version (STIG-ID): RHEL-06-000167
+# audit_time_rules
+-a always,exit -F arch=b64 -S settimeofday -k audit_time_rules
+
+#Rule Version (STIG-ID): RHEL-06-000171
+# audit_time_rules
+-a always,exit -F arch=b64 -S clock_settime -k audit_time_rules
+
+#Rule Version (STIG-ID): RHEL-06-000182
+# audit_network_modifications
+-a exit,always -F arch=b64 -S sethostname -S setdomainname -k audit_network_modifications
+-w /etc/sysconfig/network -p wa -k audit_network_modifications
+
+#Rule Version (STIG-ID): RHEL-06-000183
+-w /etc/selinux/ -p wa -k MAC-policy
+
+#Rule Version (STIG-ID): RHEL-06-000184
+-a always,exit -F arch=b64 -S chmod -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S chmod -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000185
+-a always,exit -F arch=b64 -S chown -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S chown -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000186
+-a always,exit -F arch=b64 -S fchmod -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fchmod -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000187
+-a always,exit -F arch=b64 -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fchmodat -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000188
+-a always,exit -F arch=b64 -S fchown -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fchown -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000189
+-a always,exit -F arch=b64 -S fchownat -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fchownat -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000190
+-a always,exit -F arch=b64 -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fremovexattr -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000191
+-a always,exit -F arch=b64 -S fsetxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fsetxattr -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000192
+-a always,exit -F arch=b64 -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S lchown -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000193
+-a always,exit -F arch=b64 -S lremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S lremovexattr -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000194
+-a always,exit -F arch=b64 -S lsetxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S lsetxattr -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000195
+-a always,exit -F arch=b64 -S removexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S removexattr -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000196
+-a always,exit -F arch=b64 -S setxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S setxattr -F auid=0 -k perm_mod
+
+#Rule Version (STIG-ID): RHEL-06-000197
+-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid=0 -k access
+-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid=0 -k access
+-a always,exit -F arch=b64 -S open_by_handle_at -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -F key=access
+-a always,exit -F arch=b64 -S open_by_handle_at -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -F key=access
+
+-a always,exit -F path=/usr/sbin/setfiles -F perm=x -F auid>=1000 -F auid!=4294967295 -F key=privileged-priv_change
+-a always,exit -F path=/usr/sbin/setsebool -F perm=x -F auid>=1000 -F auid!=4294967295 -F key=privileged-priv_change
+-a always,exit -F path=/usr/sbin/semanage -F perm=x -F auid>=1000 -F auid!=4294967295 -F key=privileged-priv_change
+-a always,exit -F path=/usr/bin/chcon -F perm=x -F auid>=1000 -F auid!=4294967295 -F key=privileged-priv_change
+
+##Rule Version (STIG-ID): RHEL-06-000198
+## find / -xdev -type f -perm -4000 -o -perm -2000 2>/dev/null | xargs -IXXX echo "-a always,exit -F path=XXX -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged"
+-a always,exit -F path=/var/log/journal -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+#-a always,exit -F path=/var/log/journal/2c6f141f3ddb47649a45fa62264a610e -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/wall -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/sudo -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/su -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/passwd -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/chage -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/gpasswd -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/newgrp -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/crontab -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/mount -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/umount -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/write -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/screen -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/staprun -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/at -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/ssh-agent -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/locate -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/pam_timestamp_check -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/unix_chkpwd -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/netreport -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/usernetctl -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/userhelper -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/mount.nfs -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/postqueue -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/postdrop -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/libexec/utempter/utempter -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/libexec/dbus-1/dbus-daemon-launch-helper -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/libexec/openssh/ssh-keysign -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
+
+#
+#Rule Version (STIG-ID): RHEL-06-000199
+-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k export
+-a always,exit -F arch=b64 -S mount -F auid=0 -k export
+
+#Rule Version (STIG-ID): RHEL-06-000200
+-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete
+-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid=0 -k delete
+
+#Rule Version (STIG-ID): RHEL-06-000202
+-w /sbin/insmod -p x -k modules
+-w /usr/sbin/insmod -p x -k modules
+-w /sbin/rmmod -p x -k modules
+-w /usr/sbin/rmmod -p x -k modules
+-w /sbin/modprobe -p x -k modules
+-w /usr/sbin/modprobe -p x -k modules
+-a always,exit -F arch=b64 -S init_module -S delete_module -k modules
+-a always,exit -F arch=b64 -S finit_module -k modules
+-a always,exit -F arch=b64 -S create_module -k modules
+
+#
+# End 12 March 2014 Rules
+#
+
+# April 2014
+
+# IL3 requirements - change folder perms
+-w /bin/chmod -p x -k FOLDER
+-w /bin/chgrp -p x -k FOLDER
+
+-w /etc/sd_pam.conf -p r -k ACE
+
+# End April 2014
+
+# CIS 7
+#-a always,exit -F arch=b32 -S clock_settime -k time-change
+#-a exit,always -F arch=b32 -S sethostname -S setdomainname -k audit_network_modifications
+#-a always,exit -F arch=b32 -S lsetxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-w /var/log/tallylog -p wa -k logins
+-w /var/run/utmp -p wa -k session
+-w /var/log/wtmp -p wa -k session
+-w /var/log/btmp -p wa -k session
+
+
+# find / -xdev \( -perm -4000 -o -perm -2000 \) -type f | awk '{print "-a always,exit -F path=" $1 " -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged" }'
+-a always,exit -F path=/usr/bin/wall -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/sudo -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/su -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/passwd -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/chage -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/gpasswd -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/newgrp -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/crontab -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/mount -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/umount -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/write -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/screen -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/staprun -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/at -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/ssh-agent -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/bin/locate -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/pam_timestamp_check -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/unix_chkpwd -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/netreport -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/usernetctl -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/userhelper -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/mount.nfs -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/postqueue -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/sbin/postdrop -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/libexec/utempter/utempter -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/libexec/dbus-1/dbus-daemon-launch-helper -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+-a always,exit -F path=/usr/libexec/openssh/ssh-keysign -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+
+-w /var/log/sudo.log -p wa -k actions
+
+#
+# END
+#

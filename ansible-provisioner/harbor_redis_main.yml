@@ -1,0 +1,19 @@
+---
+- name: Install Harbor, Redis, Docker and dependencies
+  hosts: all
+  become: yes
+  vars:
+    ansible_ssh_user: ubuntu
+    ansible_interpreter: "/usr/bin/python3"
+  roles:
+    - name: harbor
+    - name: docker
+    - name: ssh_ad_packages
+    - name: keepalived
+    - name: nfs
+    - name: journald
+    - name: logrhythm
+    - name: davidwittman.redis
+      redis_version: 6.0.6
+      #redis_download_url: "http://ciscuk.lab.int:8081/repository/binary-resources/redis/redis-{{ redis_version }}.tar.gz"
+    - name: redis_dependencies

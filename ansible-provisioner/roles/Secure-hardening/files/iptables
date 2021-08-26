@@ -1,0 +1,124 @@
+#
+# Secure v1.0
+#
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+:OSP-IN - [0:0]
+:OSP-OUT - [0:0]
+:OSFP - [0:0]
+
+# loopback traffic
+-A INPUT -i lo -j ACCEPT
+-A OUTPUT -o lo -j ACCEPT
+-A INPUT -s 127.0.0.0/8 -j DROP
+
+#chains
+-A INPUT -j OSFP
+-A INPUT -j OSP-IN
+-A OUTPUT -j OSP-OUT
+-A FORWARD -j OSP-IN
+
+# only allow out known traffic - overkill but the pentesters like it
+-A OSP-OUT -p tcp -m state --state NEW,ESTABLISHED -j ACCEPT
+-A OSP-OUT -p udp -m state --state NEW,ESTABLISHED -j ACCEPT
+-A OSP-OUT -p icmp -m state --state NEW,ESTABLISHED -j ACCEPT
+
+# OS fingerprinting disabled - CVE : CVE-1999-0524 Nessus ID : 10114
+-A OSFP -p icmp -m icmp --icmp-type 5 -j DROP -m comment --comment "OS fingerprint"
+-A OSFP -p icmp -m icmp --icmp-type 13 -j DROP -m comment --comment "OS fingerprint"
+-A OSFP -p icmp -m icmp --icmp-type 14 -j DROP -m comment --comment "OS fingerprint"
+-A OSFP -p icmp -m icmp --icmp-type 17 -j DROP -m comment --comment "OS fingerprint"
+-A OSFP -p icmp -m icmp --icmp-type 18 -j DROP -m comment --comment "OS fingerprint"
+-A OSFP -j RETURN
+# standard redhat rules - edited
+-A OSP-IN -i lo -j ACCEPT
+# here RH say icmp-type=any but we know that is bad, so only allow ping request and reply
+-A OSP-IN -p icmp --icmp-type 8 -j ACCEPT -m comment --comment "Ping"
+-A OSP-IN -p icmp --icmp-type 0 -j ACCEPT -m comment --comment "Ping"
+# standard established traffic on any other port
+-A OSP-IN -m state --state ESTABLISHED,RELATED -j ACCEPT -m comment --comment "Established or Related Traffic"
+
+# SSH TCP 22
+-A OSP-IN -m state --state NEW -m tcp -p tcp --dport 22 -j ACCEPT -m comment --comment "SSH"
+
+# Email
+#-A OSP-IN -m state --state NEW -m tcp -p tcp --dport 25 -s 1.2.3.0/27 -j ACCEPT -m comment --comment "email"
+
+# NTP
+#-A OSP-IN -m state --state NEW -m udp -p udp --dport 123 -j ACCEPT -m comment --comment "NTP"
+
+# netbackup
+#-A OSP-IN -m state --state NEW -m tcp -p tcp --dport 13782 -j ACCEPT -m comment --comment "NetBackup"
+#-A OSP-IN -m state --state NEW -m tcp -p tcp --dport 13724 -j ACCEPT -m comment --comment "NetBackup"
+
+# OIM rules
+#-A OSP-IN -m state --state NEW -m tcp -p tcp --dport 48000:48020 -j ACCEPT -m comment --comment "OIM robot probes"
+
+# SNMP ruleset
+#-A OSP-IN -m state --state NEW -m udp -p udp --dport 161 -j ACCEPT -m comment --comment "SNMP"
+#-A OSP-IN -m state --state NEW -m tcp -p tcp --dport 161 -j ACCEPT -m comment --comment "SNMP"
+
+#-A OSP-IN -m state --state NEW -m udp -p udp --dport 162 -j ACCEPT -m comment --comment "SNMP"
+#-A OSP-IN -m state --state NEW -m tcp -p tcp --dport 162 -j ACCEPT -m comment --comment "SNMP"
+
+# syslog
+#-A OSP-IN -m state --state NEW -m udp -p udp --dport 514 -j ACCEPT -m comment --comment "Syslog udp"
+#-A OSP-IN -m state --state NEW -m tcp -p tcp --dport 514 -j ACCEPT -m comment --comment "Syslog tcp"
+
+# Apache ruleset
+#-A OSP-IN -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT -m comment --comment "HTTP"
+#-A OSP-IN -m state --state NEW -m tcp -p tcp --dport 443 -j ACCEPT -m comment --comment "HTTPS"
+
+# squid proxy
+#-A OSP-IN -s 1.2.3.0/24 -m state --state NEW -m tcp -p tcp --dport 3128 -j ACCEPT -m comment --comment "Proxy"
+
+# RPC for NFS
+#-A OSP-IN -s 1.2.3.0/24 -m state --state NEW -p udp --dport 111 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24 -m state --state NEW -p tcp --dport 111 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24 -m state --state NEW -p tcp --dport 2020 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24 -m state --state NEW -p tcp --dport 2049 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24 -m state --state NEW -p tcp --dport 4001 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24  -m state --state NEW -p tcp --dport 32803 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24  -m state --state NEW -p udp --dport 32769 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24  -m state --state NEW -p tcp --dport 892 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24  -m state --state NEW -p udp --dport 892 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24  -m state --state NEW -p tcp --dport 875 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24  -m state --state NEW -p udp --dport 875 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24  -m state --state NEW -p tcp --dport 662 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24 -m state --state NEW -p udp --dport 662 -j ACCEPT
+#rpcbind
+#-A OSP-IN -s 1.2.3.0/24  -m state --state NEW -p tcp --dport 20048 -j ACCEPT
+#-A OSP-IN -s 1.2.3.0/24 -m state --state NEW -p udp --dport 20048 -j ACCEPT
+
+# samba
+#-A OSP-IN -p udp -m udp --dport 137 -j ACCEPT
+#-A OSP-IN -p udp -m udp --dport 138 -j ACCEPT
+#-A OSP-IN -m state --state NEW -m tcp -p tcp --dport 139 -j ACCEPT
+#-A OSP-IN -m state --state NEW -m tcp -p tcp --dport 445 -j ACCEPT
+
+
+## Append more rules above here
+
+### noise no logging
+-A OSP-IN -p udp --dport 137:139 -j DROP -m comment --comment "NetBIOS"
+-A OSP-IN -p udp --dport 445 -j DROP -m comment --comment "SMB"
+-A OSP-IN -p udp --dport 67:68 -j DROP -m comment --comment "DHCP"
+-A OSP-IN -d 255.255.255.255 -j DROP -m comment --comment "Broadcast"
+-A OSP-IN -p 2 -d 224.0.0.1 -j DROP -m comment --comment "Multicast"
+
+#http://newartisans.com/2007/09/neat-tricks-with-iptables/
+# Drop excessive RST packets to avoid SMURF attacks, by given the
+# next real data packet in the sequence a better chance to arrive first.
+-A OSP-IN -p tcp -m tcp --tcp-flags RST RST -m limit --limit 2/second --limit-burst 2 -j ACCEPT -m comment --comment "Reset Packets"
+
+# be aware of this  https://access.redhat.com/site/solutions/342433
+# log
+# do not log to /dev/console v6.7-1.0  (5=notice)
+-A OSP-IN -m limit --limit 2/min -j LOG --log-level 5 --log-prefix "IPTables-Dropped: "
+
+# Here we DROP all traffic not reject as Redhat do
+-A OSP-IN -j DROP -m comment --comment "DROP"
+
+COMMIT

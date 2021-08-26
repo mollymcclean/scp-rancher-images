@@ -1,0 +1,17 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+- meta: clear_facts # we do this to make sure RHEL8 interpreter is discovered properly
+- setup:
+
+# eg. RedHat_7
+- set_fact:
+    os_ver: "{{ ansible_distribution }}_{{ ansible_distribution_major_version }}"
+
+- include: default_packages.yml
+
+- include: shell_settings.yml
+- include: vim.yml
+
+
+- include: secure_release.yml

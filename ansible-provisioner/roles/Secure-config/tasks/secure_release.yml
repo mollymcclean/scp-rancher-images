@@ -1,0 +1,12 @@
+---
+# vim: set ft=ansible ts=2 sw=2 et:
+
+- name: set /etc/Secure Release details
+  template:
+    src: Secure_Release.j2
+    dest: /etc/Secure_RELEASE
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  

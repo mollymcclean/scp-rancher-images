@@ -1,0 +1,50 @@
+#cloud-config
+autoinstall:
+  version: 1
+  apt:
+    geoip: true
+    preserve_sources_list: false
+    primary:
+    - arches: [amd64, i386]
+      uri: http://gb.archive.ubuntu.com/ubuntu
+    - arches: [default]
+      uri: http://ports.ubuntu.com/ubuntu-ports
+  network:
+    version: 2
+    ethernets:
+      all-eth:
+        match:
+          name: "en*"
+        dhcp4: true
+  identity:
+    hostname: ubuntu
+    username: ubuntu
+    password: $1$DhxYOlXR$oOZWrZcXrZ2dgjmK01Cup0
+  ssh:
+    allow-pw: true
+    install-server: true
+  locale: en_GB.UTF-8
+  keyboard: 
+    layout: gb
+  storage:
+    layout:
+      name: direct
+    config:
+      - type: disk
+        id: disk0
+        match:
+          size: largest
+      - type: partition
+        id: boot-partition
+        device: disk0
+        size: 500M
+      - type: partition
+        id: root-partition
+        device: disk0
+        size: -1
+  user-data:
+    disable_root: false
+  late-commands:
+    - echo late
+    - 'sed -i "s/dhcp4: true/&\n dhcp-identifier: mac/" /target/etc/netplan/00-installer-config.yaml'
+    - echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' >> /target/etc/sudoers.d/ubuntu

@@ -1,0 +1,72 @@
+---
+# vim: set ft=ansible  ts=2 sw=2 et:
+
+#
+# This role depends on running ansible-hardening role first
+#  from the OpenStack project
+#
+# These are tweaks to make it better (more STIG DIST compatible)
+
+- meta: clear_facts
+- setup:
+
+# may fail if not repos available
+- include: upgrade.yml 
+
+- include: motd.yml
+
+- name: RedHat based Changes
+  block:
+    - include: chrony.yml
+    - include: yum.yml
+  when: ansible_distribution == 'RedHat'
+
+- name: Display OS version
+  debug:
+    msg:
+      - "{{ ansible_distribution }}"
+      - "{{ ansible_distribution_version }}"
+
+# TCP Wrappers
+- include: tcp_wrappers.yml
+  when: (ansible_distribution == 'RedHat' and (ansible_distribution_version is version(8.0,"<") )) or
+    (ansible_distribution == 'CentOS' and (ansible_distribution_version is version(8.0,"<") )) or
+    ansible_distribution == 'Amazon' or
+    ansible_distribution == 'Ubuntu'
+
+  # no tcpwrappers after rhel7
+
+# TODO: /etc/systemd/timesyncd.conf on Ubuntu
+
+# specific pam modules per OS
+- name: pam includes per OS
+  include: "pam_{{ ansible_distribution }}.yml"
+
+- name: pam_common
+  include: pam_common.yml # TODO: this is not that common and maybe could be split up
+
+#
+# common stuff
+#
+- include: umask.yml
+- include: pwquality.yml
+- include: cron.yml
+- include: grub.yml
+- include: processes.yml
+
+
+- include: postfix.yml
+- include: rsyslog.yml
+
+- include: console_user.yml
+
+- include: iptables.yml
+- include: sshd.yml
+- include: sysctl.yml
+
+- include: logins.yml
+- include: virtual_consoles.yml
+- include: modprobe.yml
+
+- include: auditd.yml
+- include: homedirs.yml

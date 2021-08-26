@@ -1,0 +1,130 @@
+# This playbook installs PostgreSQL HA with Consul and Patroni 
+- name: Instal epel
+  yum:
+    name: http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    state: latest
+  when: ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+- name: Download consul binary
+  get_url:
+    url: "{{ consul_download_url }}"
+    dest: "{{ consul_area }}"
+
+- name: Download consul-template binary
+  get_url:
+    url: "{{ consul_tpl_download_url }}"
+    dest: "{{ consul_tpl_area }}"
+
+- name: Instal RHEL CentOS packages
+  package:
+    name:
+      - unzip
+      - haproxy
+      - python3
+      - centos-release-scl-rh
+      - python3-devel
+      - python3-psycopg2
+      - python3-setuptools
+      - python3-pip
+    state: latest
+  when: ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+- name: Disable SELinux
+  selinux:
+    state: disabled
+  when: ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+- name: Disable firewalld
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+  when: ansible_facts.distribution in ['CentOS', 'OracleLinux', 'RedHat']
+
+- name: Instal Ubuntu packages
+  package:
+    name:
+      - unzip
+      - haproxy
+      - python3
+      - python3-all-dev
+      - python3-psycopg2
+      - python3-setuptools
+      - python3-pip
+      - python3-selinux
+      - wget
+    state: latest
+  when: ansible_facts.distribution in ['Ubuntu']
+
+- name: Disable firewalld
+  systemd:
+    name: ufw
+    state: stopped
+    enabled: no
+  when: ansible_facts.distribution in ['Ubuntu']
+
+# Install PostgreSQL Repository for RHEL
+- block:
+    - name: Get pgdg-redhat-repo-latest.noarch.rpm
+      get_url:
+        url: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_distribution_major_version }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm"  # noqa 204
+        dest: /tmp/
+        timeout: 30
+        validate_certs: false
+
+    - rpm_key:
+        state: present
+        key: "https://download.postgresql.org/pub/repos/yum/RPM-GPG-KEY-PGDG-{{ postgresql_version }}"
+
+    - name: Install PostgreSQL repository
+      package:
+        name: /tmp/pgdg-redhat-repo-latest.noarch.rpm
+        state: present
+  when: ansible_os_family == "RedHat"
+
+# Install PostgreSQL Repository for Ubuntu
+- block:
+    - name: Add PostgreSQL repo GPG key
+      apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+
+    - name: Determine the Ubutu release
+      shell: lsb_release -cs
+      register: lsb_release
+
+    - name: Add PostgreSQL repo
+      apt_repository:
+        repo: deb http://apt.postgresql.org/pub/repos/apt {{ lsb_release.stdout }}-pgdg main
+        state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install RedHat PostgreSQL packages
+  package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ postgresql_rhel_packages }}"
+  when: ansible_os_family == "RedHat"
+
+- name: Instal Ubuntu PostgreSQL packages
+  package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ postgresql_ubuntu_packages }}"
+  when: ansible_facts.distribution in ['Ubuntu']
+
+- name: Install Patroni
+  become: true
+  become_user: "postgres"
+  pip:
+    name: patroni[consul]
+    extra_args: --user
+    executable: pip3
+  tags:
+    - online_install
+
+- name: Install psycopg2
+  become: true
+  pip:
+    name: psycopg2-binary
+    state: present

@@ -1,0 +1,63 @@
+---
+# vim: set ft=ansible
+
+- name: set login banner
+  copy:
+    dest: "{{ item }}"
+    content: "{{ etc_issue_contents }}"
+    mode: 0644
+  loop:
+    - /etc/issue
+    - /etc/issue.net
+
+- name: Ensure Home Directories are Created for New Users
+  lineinfile:
+    create: yes
+    dest: "/etc/login.defs"
+    regexp: '^CREATE_HOME'
+    line: "CREATE_HOME yes" 
+
+
+- name: "Limit the Number of Concurrent Login Sessions Allowed Per User"
+  lineinfile:
+    state: present
+    dest: /etc/security/limits.conf
+    insertbefore: "^# End of file"
+    regexp: "^#?\\*.*maxlogins"
+    line: "*           hard    maxlogins     {{ var_accounts_max_concurrent_login_sessions }}"
+
+- name: Set Umask in login.defs
+  lineinfile:
+      create: yes
+      dest: /etc/login.defs
+      regexp: ^#?UMASK
+      line: "UMASK 027"
+
+- name: Set Password Minimum Age
+  lineinfile:
+      create: yes
+      dest: /etc/login.defs
+      regexp: ^#?PASS_MIN_DAYS
+      line: "PASS_MIN_DAYS {{ var_accounts_minimum_age_login_defs }}"
+
+- name: Set Password Maximum Age
+  lineinfile:
+    create: yes
+    dest: /etc/login.defs
+    regexp: ^#?PASS_MAX_DAYS
+    line: "PASS_MAX_DAYS {{ var_accounts_maximum_age_login_defs }}"
+    
+- name: Set Password Warning Age
+  lineinfile:
+    create: yes
+    dest: /etc/login.defs
+    regexp: ^#?PASS_WARN_AGE
+    line: "PASS_WARN_AGE {{ var_accounts_warning_age_login_defs }}"
+
+- name: Set Account Expiration Following Inactivity
+  lineinfile:
+    create: yes
+    dest: /etc/default/useradd
+    regexp: ^INACTIVE
+    line: "INACTIVE={{ var_account_disable_post_pw_expiration }}"
+

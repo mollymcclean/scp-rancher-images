@@ -1,0 +1,6 @@
+- name: Install nfs-server
+  package:
+    name:
+      - nfs-kernel-server
+    state: latest
+  when: ansible_facts.distribution in ['Ubuntu']

@@ -1,0 +1,15 @@
+---
+apt_core_18:
+          deb [arch=amd64] https://ciscuk.lab.int/apt/ubuntu/ bionic main restricted universe multiverse
+          deb [arch=amd64] https://ciscuk.lab.int/apt/ubuntu/ bionic-updates main restricted universe multiverse
+          deb [arch=amd64] https://ciscuk.lab.int/apt/ubuntu/ bionic-security main restricted universe multiverse
+          deb [arch=amd64] https://ciscuk.lab.int/apt/docker bionic stable
+          deb [arch=amd64] https://ciscuk.lab.int/apt/graphana stable main
+          
+apt_hdp_18:
+          deb [arch=amd64] https://ciscuk.lab.int/apt/hdp-18 HDP main
+          deb [arch=amd64] https://ciscuk.lab.int/apt/hdp-gpl-18 HDP-GPL main
+          deb [arch=amd64] https://ciscuk.lab.int/apt/hdp-utils-18 HDP-UTILS main
+
+apt_ambari_18:
+          deb [arch=amd64] https://ciscuk.lab.int/apt/ambari-18 Ambari main
