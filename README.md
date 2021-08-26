@@ -15,7 +15,8 @@ To build the Bastion image :
 To build the RKE node image :
 `packer build -on-error=ask -var-file=ubuntu_20.04_rke_variables.json aws_packer_common_template.json `
 
-Note:: The image hardening playbook has been removed from aws_common_templates;
+NOTE :: The image hardening playbook was removed from aws_common_template.json. To include it, the following code should be placed after the shell command to install ansible.
+
 ```
 {
   "playbook_dir": "ansible-provisioner",
