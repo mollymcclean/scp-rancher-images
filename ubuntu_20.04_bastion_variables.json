@@ -3,5 +3,5 @@
   "iso_urls": "http://cdimage.ubuntu.com/ubuntu-legacy-server/releases/20.04/release/ubuntu-20.04.1-legacy-server-amd64.iso",
   "playbook_file": "bastion_main.yml",
   "ova_file_name": "Ubuntu-20.04-CIS-bastion-v01",
-  "volume_size": "50"
+  "volume_size": "32"
 }
