@@ -36,6 +36,14 @@
         "type": "shell"
       },
       {
+        "playbook_dir": "ansible-provisioner",
+        "playbook_file": "ansible-provisioner/ubuntu_CIS_hardening.yml",
+        "role_paths": [
+          "ansible-provisioner/roles"
+        ],
+        "type": "ansible-local"
+      },
+      {
         "expect_disconnect": "true",
         "inline": [
           "sudo reboot"
