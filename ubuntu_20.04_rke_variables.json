@@ -3,5 +3,6 @@
   "iso_urls": "http://cdimage.ubuntu.com/ubuntu-legacy-server/releases/20.04/release/ubuntu-20.04.1-legacy-server-amd64.iso",
   "playbook_file": "rke_main.yml",
   "ova_file_name": "Ubuntu-20.04-CIS-rke-v01",
+  "project_tag": "scp-rancher-rke-nodes",
   "volume_size": "30"
 }
