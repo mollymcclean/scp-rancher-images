@@ -7,6 +7,8 @@ This repo contains the code to generate Images that can be used for vSphere or A
 
 To use this repository for the Innovation Lab SCP project, first install packer and ansible on the machine you will be running the commands on.
 
+The `aws_common_template.json` file was adapted from the `vsphere_packer_CIS_common_template.json` so that AMIs could be built on AWS. 
+
 Export AWS credentials, or set up IAM role to be able to access EC2.
 ```
 $ cd
